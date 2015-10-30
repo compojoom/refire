@@ -55,18 +55,20 @@ function subscribe(localBinding, bindOptions, options) {
       const lastIdInSnapshot = snapshotKeys[snapshotKeys.length - 1]
 
       // only listen child_added for new items, don't dispatch for initial items
-      listeners.child_added = firebaseRef
-      .orderByKey()
-      .startAt(lastIdInSnapshot)
-      .on(
-        'child_added',
-        (snapshot, previousChildKey) => {
-          if ( snapshot.key() !== lastIdInSnapshot ) {
-            dispatchChildAdded(store, localBinding)(snapshot, previousChildKey);
-          }
-        },
-        onCancel
-      );
+      if (lastIdInSnapshot) {
+        listeners.child_added = firebaseRef
+        .orderByKey()
+        .startAt(lastIdInSnapshot)
+        .on(
+          'child_added',
+          (snapshot, previousChildKey) => {
+            if ( snapshot.key() !== lastIdInSnapshot ) {
+              dispatchChildAdded(store, localBinding)(snapshot, previousChildKey);
+            }
+          },
+          onCancel
+        );
+      }
       // Add listeners for rest of 'child_*' events
       listeners.child_changed = firebaseRef.on('child_changed', dispatchChildChanged(store, localBinding), onCancel);
       listeners.child_moved = firebaseRef.on('child_moved', dispatchChildMoved(store, localBinding), onCancel);
