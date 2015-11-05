@@ -103,6 +103,12 @@ export function replaceValue(path, value) {
   };
 }
 
+export function completeInitialFetch() {
+  return {
+    type: INITIAL_FETCH_DONE
+  };
+}
+
 export function receiveInitialValue(path) {
   return (dispatch, getState) => {
     const {firebase: {initialFetchDone}} = getState();
@@ -123,9 +129,7 @@ export function receiveInitialValue(path) {
           Object.keys(stores)
         ).length
       ) {
-        dispatch({
-          type: INITIAL_FETCH_DONE
-        });
+        dispatch(completeInitialFetch());
       }
 
     }

@@ -12,83 +12,11 @@ import {
   updateObject,
   replaceValue,
   receiveInitialValue,
+  completeInitialFetch,
   connect,
   authenticateUser,
   unauthenticateUser
 } from './actions/firebase';
-
-function unsubscribe(localBinding, ref, listeners) {
-  for (const event in listeners) {
-    if (listeners.hasOwnProperty(event)) {
-      ref.off(event, listeners[event]);
-    }
-  }
-}
-
-function unsubscribeAll(refs, listeners) {
-  for (const localBinding in refs) {
-    if (refs.hasOwnProperty(localBinding)) {
-      unsubscribe(localBinding, refs[localBinding], listeners[localBinding]);
-      delete refs[localBinding];
-      delete listeners[localBinding];
-    }
-  }
-}
-
-function subscribe(localBinding, bindOptions, options) {
-  const {path, type, initialQuery} = bindOptions;
-  const {store, url, onCancel} = options;
-  const firebaseRef = new Firebase(`${url}${path}`);
-  let listeners = {};
-
-  if (type === "Array") {
-    const initialRef = initialQuery
-      ? initialQuery(firebaseRef)
-      : firebaseRef;
-
-    // listen for value once to prevent multiple updates on initial items
-    listeners.once = initialRef.once('value', (snapshot) => {
-      dispatchInitialValueReceived(store, localBinding);
-      dispatchArrayUpdated(store, localBinding)(snapshot);
-
-      const snapshotKeys = Object.keys(snapshot.val() || {}).sort();
-      const lastIdInSnapshot = snapshotKeys[snapshotKeys.length - 1]
-
-      // only listen child_added for new items, don't dispatch for initial items
-      if (lastIdInSnapshot) {
-        listeners.child_added = firebaseRef
-        .orderByKey()
-        .startAt(lastIdInSnapshot)
-        .on(
-          'child_added',
-          (snapshot, previousChildKey) => {
-            if ( snapshot.key() !== lastIdInSnapshot ) {
-              dispatchChildAdded(store, localBinding)(snapshot, previousChildKey);
-            }
-          },
-          onCancel
-        );
-      }
-      // Add listeners for rest of 'child_*' events
-      listeners.child_changed = firebaseRef.on('child_changed', dispatchChildChanged(store, localBinding), onCancel);
-      listeners.child_moved = firebaseRef.on('child_moved', dispatchChildMoved(store, localBinding), onCancel);
-      listeners.child_removed = firebaseRef.on('child_removed', dispatchChildRemoved(store, localBinding), onCancel);
-    }, onCancel);
-  } else {
-    // Add listener for 'value' event
-    listeners = {
-      value: firebaseRef.on('value', (snapshot) => {
-        dispatchInitialValueReceived(store, localBinding);
-        dispatchObjectUpdated(store, localBinding, snapshot);
-      }, onCancel)
-    };
-  }
-
-  return {
-    ref: firebaseRef.ref(),
-    listeners: listeners
-  }
-}
 
 function dispatchChildAdded(store, localBinding) {
   return (snapshot, previousChildKey) => {
@@ -138,6 +66,79 @@ function dispatchObjectUpdated(store, localBinding, snapshot) {
 
 function dispatchInitialValueReceived(store, localBinding) {
   return store.dispatch(receiveInitialValue(localBinding));
+}
+
+function unsubscribe(localBinding, ref, listeners) {
+  for (const event in listeners) {
+    if (listeners.hasOwnProperty(event)) {
+      ref.off(event, listeners[event]);
+    }
+  }
+}
+
+function unsubscribeAll(refs, listeners) {
+  for (const localBinding in refs) {
+    if (refs.hasOwnProperty(localBinding)) {
+      unsubscribe(localBinding, refs[localBinding], listeners[localBinding]);
+      delete refs[localBinding];
+      delete listeners[localBinding];
+    }
+  }
+}
+
+function subscribe(localBinding, bindOptions, options) {
+  const {path, type, initialQuery} = bindOptions;
+  const {store, url, onCancel} = options;
+  const firebaseRef = new Firebase(`${url}${path}`);
+  let listeners = {};
+
+  if (type === "Array") {
+    const initialRef = initialQuery
+      ? initialQuery(firebaseRef)
+      : firebaseRef;
+
+    // listen for value once to prevent multiple updates on initial items
+    listeners.value = initialRef.once('value', (snapshot) => {
+      dispatchInitialValueReceived(store, localBinding);
+      dispatchArrayUpdated(store, localBinding)(snapshot);
+
+      const snapshotKeys = Object.keys(snapshot.val() || {}).sort();
+      const lastIdInSnapshot = snapshotKeys[snapshotKeys.length - 1]
+
+      // only listen child_added for new items, don't dispatch for initial items
+      if (lastIdInSnapshot) {
+        listeners.child_added = firebaseRef
+        .orderByKey()
+        .startAt(lastIdInSnapshot)
+        .on(
+          'child_added',
+          (snapshot, previousChildKey) => {
+            if ( snapshot.key() !== lastIdInSnapshot ) {
+              dispatchChildAdded(store, localBinding)(snapshot, previousChildKey);
+            }
+          },
+          onCancel
+        );
+      }
+      // Add listeners for rest of 'child_*' events
+      listeners.child_changed = firebaseRef.on('child_changed', dispatchChildChanged(store, localBinding), onCancel);
+      listeners.child_moved = firebaseRef.on('child_moved', dispatchChildMoved(store, localBinding), onCancel);
+      listeners.child_removed = firebaseRef.on('child_removed', dispatchChildRemoved(store, localBinding), onCancel);
+    }, onCancel);
+  } else {
+    // Add listener for 'value' event
+    listeners = {
+      value: firebaseRef.on('value', (snapshot) => {
+        dispatchInitialValueReceived(store, localBinding);
+        dispatchObjectUpdated(store, localBinding, snapshot);
+      }, onCancel)
+    };
+  }
+
+  return {
+    ref: firebaseRef.ref(),
+    listeners: listeners
+  }
 }
 
 function createBindings(bindings, state) {
@@ -271,5 +272,38 @@ export default function syncFirebase(options = {}) {
     firebaseListeners[localBinding] = listeners;
   });
 
-  return () => unsubscribeAll(firebaseRefs, firebaseListeners);
+  // immediately mark initial fetch completed if we aren't initially subscribed to any stores
+  if (!Object.keys(currentBindings).length) {
+    store.dispatch(completeInitialFetch());
+  }
+
+  const initialized = new Promise((resolve, reject) => {
+    const unsubscribe = store.subscribe(() => {
+      const {firebase} = store.getState();
+      if (firebase.connected && firebase.initialFetchDone) {
+        resolve();
+        unsubscribe();
+      }
+    });
+  });
+
+  return Object.defineProperties({
+    unsubscribe: () => unsubscribeAll(firebaseRefs, firebaseListeners)
+  }, {
+    refs: {
+      enumerable: false,
+      writable: false,
+      value: firebaseRefs
+    },
+    listeners: {
+      enumerable: false,
+      writable: false,
+      value: firebaseListeners
+    },
+    initialized: {
+      enumerable: false,
+      writable: false,
+      value: initialized
+    }
+  });
 }
