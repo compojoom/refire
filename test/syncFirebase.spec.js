@@ -367,8 +367,68 @@ describe('syncFirebase', () => {
       });
     });
 
-    it('unsubscribe previous binding and subscribe with new path if path is changed', () => {
-      // TODO:
+    it('unsubscribe previous binding and subscribe with new path if path is changed', async (done) => {
+      server = initServer({
+        users: {
+          1: {
+            name: "First user", email: "first@test.dev"
+          },
+          2: {
+            name: "Second user", email: "second@test.dev"
+          }
+        }
+      });
+
+      const bindings = {
+        users: {
+          type: "Array",
+          path: "users"
+        },
+        user: {
+          type: "Object",
+          path: state => {
+            if (state.counter === 1) {
+              return "users/1";
+            } else {
+              return "users/2";
+            }
+          }
+        }
+      };
+
+      const store = initStore(bindings, {
+        counter: initCounterReducer()
+      });
+
+      const url = newServerUrl();
+      const sync = syncFirebase({
+        store: store,
+        bindings: bindings,
+        url: url
+      });
+      await sync.initialized;
+
+      expect(Object.keys(sync.refs).length).toEqual(2);
+      expect(Object.keys(sync.listeners).length).toEqual(2);
+      expect(store.getState().firebase.stores.user.value).toEqual({
+        name: "First user", email: "first@test.dev"
+      });
+      const userRef = sync.refs.user;
+      const userListener = sync.listeners.user;
+
+      store.dispatch(incrementCounter());
+
+      const unsubscribe = store.subscribe(() => {
+        expect(Object.keys(sync.refs).length).toEqual(2);
+        expect(Object.keys(sync.listeners).length).toEqual(2);
+        expect(store.getState().firebase.stores.user.value).toEqual({
+          name: "Second user", email: "second@test.dev"
+        });
+        expect(userRef).toNotEqual(sync.refs.user);
+        expect(userListener).toNotEqual(sync.listeners.user);
+        unsubscribe();
+        done();
+      });
     });
 
   });
