@@ -380,10 +380,6 @@ describe('syncFirebase', () => {
       });
 
       const bindings = {
-        users: {
-          type: "Array",
-          path: "users"
-        },
         user: {
           type: "Object",
           path: state => {
@@ -408,8 +404,8 @@ describe('syncFirebase', () => {
       });
       await sync.initialized;
 
-      expect(Object.keys(sync.refs).length).toEqual(2);
-      expect(Object.keys(sync.listeners).length).toEqual(2);
+      expect(Object.keys(sync.refs).length).toEqual(1);
+      expect(Object.keys(sync.listeners).length).toEqual(1);
       expect(store.getState().firebase.stores.user.value).toEqual({
         name: "First user", email: "first@test.dev"
       });
@@ -419,8 +415,8 @@ describe('syncFirebase', () => {
       store.dispatch(incrementCounter());
 
       const unsubscribe = store.subscribe(() => {
-        expect(Object.keys(sync.refs).length).toEqual(2);
-        expect(Object.keys(sync.listeners).length).toEqual(2);
+        expect(Object.keys(sync.refs).length).toEqual(1);
+        expect(Object.keys(sync.listeners).length).toEqual(1);
         expect(store.getState().firebase.stores.user.value).toEqual({
           name: "Second user", email: "second@test.dev"
         });
