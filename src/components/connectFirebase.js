@@ -6,11 +6,12 @@ export default function connectFirebase(
   mapStateToProps,
   mapDispatchToProps,
   mergeProps,
-  options
+  options = {}
 ) {
+  const { withRef = false } = options;
 
   const firebaseStateToProps = (state, localBindings) => {
-    return localBindings.reduce((stateSlice, binding) => {
+    return (localBindings || []).reduce((stateSlice, binding) => {
       if (binding === "_status") {
         const {authenticatedUser, connected, initialFetchDone} = state.firebase;
         stateSlice[binding] = {authenticatedUser, connected, initialFetchDone};
@@ -37,16 +38,47 @@ export default function connectFirebase(
 
   return function(WrappedComponent) {
     class ConnectFirebase extends Component {
+
+      constructor(props, context) {
+        super(props, context);
+        this.store = props.store || context.store;
+        if (!this.store) {
+          throw new Error(
+            `Invariant Violation: Could not find "store" in either the context or ` +
+            `props of "${this.constructor.displayName}". ` +
+            `Either wrap the root component in a <Provider>, ` +
+            `or explicitly pass "store" as a prop to "${this.constructor.displayName}".`
+          );
+        }
+      }
+
+      getWrappedInstance() {
+        return this.refs.wrappedInstance;
+      }
+
       render() {
-        return <WrappedComponent {...this.props} firebase={this.context.firebase} />;
+        const ref = withRef ? 'wrappedInstance' : null;
+        return <WrappedComponent {...this.props} firebase={this.context.firebase} ref={ref} />;
       }
     }
 
-    ConnectFirebase.contextTypes = {firebase: PropTypes.object};
-    ConnectFirebase.displayName = `ConnectFirebase(${WrappedComponent.displayName || WrappedComponent.name || 'Component'}`;
+    ConnectFirebase.displayName = `ConnectFirebase(${WrappedComponent.displayName || WrappedComponent.name || 'Component'})`;
+    ConnectFirebase.WrappedComponent = WrappedComponent;
+    ConnectFirebase.contextTypes = {
+      firebase: PropTypes.object,
+      store: PropTypes.object
+    };
+    ConnectFirebase.propTypes = {
+      firebase: PropTypes.object,
+      store: PropTypes.object
+    };
+
+    const mapState = mapStateToProps && mapStateToProps.length
+      ? combinedStateToProps
+      : mapStateToProps;
 
     return connect(
-      combinedStateToProps,
+      mapState,
       mapDispatchToProps,
       mergeProps,
       options

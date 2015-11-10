@@ -1,18 +1,14 @@
 import expect from 'expect';
-import firebaseReducer from '../src/reducers/firebase';
-
-import FirebaseServer from 'firebase-server';
 import originalWebsocket from 'faye-websocket';
-import assert from 'assert';
 import proxyquire from 'proxyquire';
 
-import { applyMiddleware, createStore, compose, combineReducers } from 'redux';
-import thunk from 'redux-thunk';
-
-// TODO: extract all test helpers to a separate file
-
-const PORT = 45000;
-const INCREMENT_COUNTER = "INCREMENT_COUNTER";
+import {
+  PORT,
+  initServer,
+  initStore,
+  initCounterReducer,
+  incrementCounter
+} from './helpers';
 
 // Firebase has strict requirements about the hostname format. So we provide a dummy
 // hostname and then change the URL to localhost inside the faye-websocket's Client
@@ -29,36 +25,6 @@ const Firebase = proxyquire('firebase', {
 const syncFirebase = proxyquire('../src/syncFirebase', {
   'firebase': Firebase
 });
-
-function initServer(data) {
-  return new FirebaseServer(PORT, 'localhost:' + PORT, data);
-}
-
-function initStore(bindings, extraReducers = {}) {
-  return compose(
-    applyMiddleware(thunk)
-  )(createStore)(
-    combineReducers({
-      firebase: firebaseReducer(bindings),
-      ...extraReducers
-    })
-  );
-}
-
-function createReducer(initialState, handlers) {
-  return (state = initialState, action) => {
-    return handlers[action.type]
-      ? handlers[action.type](state, action)
-      : state;
-  }
-}
-
-function initCounterReducer() {
-  return createReducer(1, {
-    [INCREMENT_COUNTER]: (state, action) => state + 1
-  });
-}
-const incrementCounter = id => ({ type: INCREMENT_COUNTER });
 
 describe('syncFirebase', () => {
   let server;
