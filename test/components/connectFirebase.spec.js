@@ -18,13 +18,14 @@ const Firebase = proxyquire('firebase', {
 
 import { connectFirebase } from '../../src/index';
 import {
-  PORT,
   initServer,
   initStore,
   initSync,
   initCounterReducer,
   incrementCounter
 } from '../helpers';
+
+const PORT = 46000;
 
 describe('React', () => {
   describe('connectFirebase', () => {
@@ -80,6 +81,7 @@ describe('React', () => {
       ({initialized, server, unsubscribe, store} = initSync({
         bindings: {},
         data: {},
+        port: PORT,
         url: newServerUrl()
       }));
 
@@ -112,6 +114,7 @@ describe('React', () => {
       ({initialized, server, unsubscribe, store} = initSync({
         bindings: {counter: {path: "counter"}},
         data: {counter: 5},
+        port: PORT,
         url: newServerUrl()
       }));
 
@@ -148,6 +151,7 @@ describe('React', () => {
             "first": {id: 1, title: "Hello", body: "World"}
           }
         },
+        port: PORT,
         url: newServerUrl()
       }));
 
@@ -187,6 +191,7 @@ describe('React', () => {
       ({initialized, server, unsubscribe, store} = initSync({
         bindings: { user: {type: "Object", path: "user"} },
         data: { user: {name: "Test user", email: "test@test.dev"} },
+        port: PORT,
         url: newServerUrl()
       }));
 
@@ -228,6 +233,7 @@ describe('React', () => {
           }
         },
         data: { user: {name: "Test user", email: "test@test.dev"} },
+        port: PORT,
         url: newServerUrl()
       }));
 
@@ -274,6 +280,7 @@ describe('React', () => {
           }
         },
         data: { user: {name: "Test user", email: "test@test.dev"} },
+        port: PORT,
         url: newServerUrl()
       }));
 
@@ -332,6 +339,7 @@ describe('React', () => {
             }
           }
         },
+        port: PORT,
         url: newServerUrl()
       }));
 

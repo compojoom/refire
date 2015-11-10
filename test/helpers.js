@@ -28,10 +28,8 @@ function createReducer(initialState, handlers) {
   }
 }
 
-export const PORT = 45000;
-
-export function initServer(data) {
-  return new FirebaseServer(PORT, 'localhost:' + PORT, data);
+export function initServer(data, port) {
+  return new FirebaseServer(port, 'localhost:' + port, data);
 }
 
 export function initStore(bindings, extraReducers = {}) {
@@ -54,8 +52,8 @@ export function initCounterReducer() {
 export const incrementCounter = id => ({ type: INCREMENT_COUNTER });
 
 export function initSync(options = {}) {
-  const {bindings, data, url} = options;
-  const server = initServer(data);
+  const {bindings, data, port, url} = options;
+  const server = initServer(data, port);
   const store = initStore(bindings, {counter: initCounterReducer()});
   const {initialized, unsubscribe} = syncFirebase({
     store: store,

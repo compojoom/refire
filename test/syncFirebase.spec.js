@@ -3,7 +3,6 @@ import originalWebsocket from 'faye-websocket';
 import proxyquire from 'proxyquire';
 
 import {
-  PORT,
   initServer,
   initStore,
   initCounterReducer,
@@ -25,6 +24,8 @@ const Firebase = proxyquire('firebase', {
 const syncFirebase = proxyquire('../src/syncFirebase', {
   'firebase': Firebase
 });
+
+const PORT = 45000;
 
 describe('syncFirebase', () => {
   let server;
@@ -65,7 +66,7 @@ describe('syncFirebase', () => {
       posts: [],
       user: {},
       counter: 0
-    });
+    }, PORT);
 
     const bindings = {
       posts: {
@@ -105,7 +106,7 @@ describe('syncFirebase', () => {
       },
       user: {name: "Test user", email: "test@test.dev"},
       counter: 5
-		});
+		}, PORT);
 
     const bindings = {
       posts: {
@@ -175,7 +176,7 @@ describe('syncFirebase', () => {
     it('object changed', async () => {
       server = initServer({
         user: {name: "Test user", email: "test@test.dev"}
-      });
+      }, PORT);
 
       const bindings = {
         user: {
@@ -204,7 +205,7 @@ describe('syncFirebase', () => {
     it('primitive changed', async () => {
       server = initServer({
         counter: 1
-      });
+      }, PORT);
 
       const bindings = {
         counter: {
@@ -236,7 +237,7 @@ describe('syncFirebase', () => {
     it('unsubscribe binding and reset state if path becomes null', async () => {
       server = initServer({
         user: {name: "Test user", email: "test@test.dev"}
-      });
+      }, PORT);
 
       const bindings = {
         user: {
@@ -283,7 +284,7 @@ describe('syncFirebase', () => {
     it('subscribe binding if path changes from null to string', async (done) => {
       server = initServer({
         user: {name: "Test user", email: "test@test.dev"}
-      });
+      }, PORT);
 
       const bindings = {
         user: {
@@ -343,7 +344,7 @@ describe('syncFirebase', () => {
             name: "Second user", email: "second@test.dev"
           }
         }
-      });
+      }, PORT);
 
       const bindings = {
         user: {
