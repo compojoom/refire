@@ -1,7 +1,6 @@
-import { connect } from 'react-redux';
 import hoistStatics from 'hoist-non-react-statics';
 
-export default function createConnect(React) {
+export default function createConnect(React, connect) {
   const { Component, PropTypes } = React;
 
   return function connectFirebase(
