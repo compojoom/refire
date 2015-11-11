@@ -29,6 +29,7 @@
     "jsdom": "^7.0.2",
     "proxyquire": "^1.7.3",
     "react-addons-test-utils": "^0.14.0",
+    "react": "^0.14.0",
     "react-dom": "^0.14.0",
     "rimraf": "^2.4.3"
   },
@@ -38,8 +39,7 @@
   "peerDependencies": {
     "firebase": "^2.3.1",
     "lodash": "^3.10.1",
-    "react": "^0.14.0",
-    "react-redux": "^4.0.0",
+    "react-redux": "^3.1.0",
     "redux": "^3.0.4",
     "redux-thunk": "^1.0.0"
   }
