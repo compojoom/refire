@@ -25,6 +25,10 @@ import { connectFirebase as connect } from '../../src/index'
 // should throw an error if the store is not in the props or context
 // changed Connect() -> Connect(ConnectFirebase())
 
+// should throw when trying to access the wrapped instance if withRef is not specified
+// REMOVED: this test case was introduced in react-redux 4.0.0
+// and this module now uses 3.1.0 for react-native support
+
 describe('React', () => {
   describe('connect', () => {
     class Passthrough extends Component {
@@ -1124,30 +1128,6 @@ describe('React', () => {
         'Invariant Violation: Could not find "store" in either the context ' +
         'or props of "Connect(ConnectFirebase(Container))". Either wrap the root component in a ' +
         '<Provider>, or explicitly pass "store" as a prop to "Connect(ConnectFirebase(Container))".'
-      )
-    })
-
-    it('should throw when trying to access the wrapped instance if withRef is not specified', () => {
-      const store = createStore(() => ({}))
-
-      class Container extends Component {
-        render() {
-          return <Passthrough />
-        }
-      }
-
-      const decorator = connect(state => state)
-      const Decorated = decorator(Container)
-
-      const tree = TestUtils.renderIntoDocument(
-        <ProviderMock store={store}>
-          <Decorated />
-        </ProviderMock>
-      )
-
-      const decorated = TestUtils.findRenderedComponentWithType(tree, Decorated)
-      expect(() => decorated.getWrappedInstance()).toThrow(
-        /To access the wrapped instance, you need to specify \{ withRef: true \} as the fourth argument of the connect\(\) call\./
       )
     })
 

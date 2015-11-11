@@ -14,7 +14,7 @@ const Firebase = proxyquire('firebase', {
 
 const FirebaseProvider = proxyquire('../../src/components/FirebaseProvider', {
   'firebase': Firebase
-});
+})(React);
 
 describe('React', () => {
   describe('FirebaseProvider', () => {
