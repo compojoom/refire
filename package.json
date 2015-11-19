@@ -6,6 +6,7 @@
   "main": "./lib/index.js",
   "scripts": {
     "build": "babel src --out-dir lib",
+    "watch": "babel src --watch --out-dir lib",
     "clean": "rimraf lib",
     "prepublish": "npm run clean && npm run build",
     "test": "mocha --compilers js:babel/register --recursive --require ./test/setup.js"
@@ -34,10 +35,8 @@
     "rimraf": "^2.4.3"
   },
   "dependencies": {
-    "hoist-non-react-statics": "^1.0.3"
-  },
-  "peerDependencies": {
     "firebase": "^2.3.1",
+    "hoist-non-react-statics": "^1.0.3",
     "lodash": "^3.10.1",
     "react-redux": "^3.1.0",
     "redux": "^3.0.4",
