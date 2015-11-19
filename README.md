@@ -1,6 +1,8 @@
-# redux-firebase-sync
+# Refire
 
-Fetches selected [Firebase](https://www.firebase.com/) paths to your local [Redux](http://redux.js.org/) store and keeps your local store in sync with server's state. You can also switch watched paths on state changes.
+> Quick prototyping with React, Firebase and Redux
+
+Refire fetches selected [Firebase](https://www.firebase.com/) paths to your local [Redux](http://redux.js.org/) store and keeps your store in sync with server's state. You can also switch watched paths on state changes.
 
 Using provided [React](https://facebook.github.io/react/) components you also get automatic re-renders for your connected views on any change.
 
@@ -28,7 +30,7 @@ import { firebaseReducer, syncFirebase } from 'redux-firebase-sync';
 
 const firebaseBindings = {
   // Primitives can be defined without setting any type, just set the local sync path
-  // as key and object containing remote path as value. 
+  // as key and object containing remote path as value.
   localCounter: {
     path: "counterPathInFirebase"
   },
@@ -58,7 +60,7 @@ const firebaseBindings = {
         return null;
       }
     }
-  }	
+  }
 };
 
 const reducer = combineReducers({
@@ -102,13 +104,13 @@ class Root extends Component {
 
 ### connectFirebase([mapStateToProps], [mapDispatchToProps], [mergeProps], [options])
 
-Keeps provided React component in sync with given firebase paths in Redux store. 
+Keeps provided React component in sync with given firebase paths in Redux store.
 
 Same function signature as in [react-redux's connect](https://github.com/rackt/react-redux/blob/master/docs/api.md#connectmapstatetoprops-mapdispatchtoprops-mergeprops-options).
 
 You can use connectFirebase just like react-redux's connect, but it provides you some extra functionality.
 
-You can get your local binding as a prop by returning `{firebase: ["yourLocalBinding"]}` from mapStateToProps. 
+You can get your local binding as a prop by returning `{firebase: ["yourLocalBinding"]}` from mapStateToProps.
 
 Firebase reference provided by **&lt;FirebaseProvider&gt;** will also be available as `firebase` prop.
 
@@ -116,7 +118,7 @@ Firebase reference provided by **&lt;FirebaseProvider&gt;** will also be availab
 @connectFirebase(
   state => ({firebase: ["counter"]})
 )
-class Counter extends Component { 
+class Counter extends Component {
   render() {
     // counter available as this.props.counter
     // Firebase reference available as this.props.firebase
@@ -124,7 +126,7 @@ class Counter extends Component {
 }
 ```
 
-There's also special `_status` binding available, it provides an object with `connected` and `initialFetchDone` values. 
+There's also special `_status` binding available, it provides an object with latest `authenticatedUser`, `connected`, `errors` and `initialFetchDone` values.
 
 ```javascript
 @connectFirebase(state => ({firebase: ["_status"]}))
@@ -145,10 +147,18 @@ class App extends Component {
 }
 ```
 
+### FirebaseLogin
+
+TODO
+
+### FirebaseOAuth
+
+TODO
+
 ## Data shape
 
 All returned values are wrapped in `{key, value}` shaped object for easier consumption.
-Primitives and Objects could be returned as they are, but then consumption of Array elements would be different, it's easier to have uniform way to access keys and values. I'm also not a big fan of `.key` and `.value` used in [ReactFire](https://github.com/firebase/reactfire). 
+Primitives and Objects could be returned as they are, but then consumption of Array elements would be different, it's easier to have uniform way to access keys and values. I'm also not a big fan of `.key` and `.value` used in [ReactFire](https://github.com/firebase/reactfire).
 
 ```javascript
 // Primitives

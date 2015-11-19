@@ -12,7 +12,9 @@ import {
   INITIAL_FETCH_DONE,
   CONNECTED,
   USER_AUTHENTICATED,
-  USER_UNAUTHENTICATED
+  USER_UNAUTHENTICATED,
+  CONFIG_UPDATED,
+  UPDATE_ERROR
 } from '../actions/firebase'
 
 function indexForKey(array, key) {
@@ -20,7 +22,7 @@ function indexForKey(array, key) {
 }
 
 function arrayChildAdded(state, action) {
-  const {payload: {path, key, value, previousChildKey}} = action
+  const {payload: {path, value, previousChildKey}} = action
   const newArray = [...state.stores[path].value]
   const insertionIndex = previousChildKey === null
     ? 0
@@ -117,14 +119,14 @@ function initialValueReceived(state, action) {
   }
 }
 
-function initialFetchDone(state, action) {
+function initialFetchDone(state) {
   return {
     ...state,
     initialFetchDone: true
   }
 }
 
-function connected(state, action) {
+function connected(state) {
   return {
     ...state,
     connected: true
@@ -138,10 +140,29 @@ function userAuthenticated(state, action) {
   }
 }
 
-function userUnauthenticated(state, action) {
+function userUnauthenticated(state) {
   return {
     ...state,
     authenticatedUser: null
+  }
+}
+
+function configUpdated(state, action) {
+  const {payload: {url}} = action
+  return {
+    ...state,
+    url: url
+  }
+}
+
+function updateError(state, action) {
+  const {payload: {field, error}} = action
+  return {
+    ...state,
+    errors: {
+      ...state.errors,
+      [field]: error
+    }
   }
 }
 
@@ -156,7 +177,11 @@ export default function(bindings) {
     connected: false,
     initialFetchDone: false,
     initialValuesReceived: [],
-    stores: initialStores
+    stores: initialStores,
+    url: null,
+    errors: {
+      login: null
+    }
   }
 
   return createReducer(initialState, {
@@ -171,6 +196,8 @@ export default function(bindings) {
     [INITIAL_FETCH_DONE]: initialFetchDone,
     [CONNECTED]: connected,
     [USER_AUTHENTICATED]: userAuthenticated,
-    [USER_UNAUTHENTICATED]: userUnauthenticated
+    [USER_UNAUTHENTICATED]: userUnauthenticated,
+    [CONFIG_UPDATED]: configUpdated,
+    [UPDATE_ERROR]: updateError
   })
 }

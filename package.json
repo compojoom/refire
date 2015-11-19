@@ -1,13 +1,14 @@
 {
-  "name": "redux-firebase-sync",
+  "name": "refire",
   "version": "0.1.0",
-  "description": "redux-firebase-sync",
+  "description": "Quick prototyping with React, Firebase and Redux",
   "private": true,
   "main": "./lib/index.js",
   "scripts": {
     "build": "babel src --out-dir lib",
     "watch": "babel src --watch --out-dir lib",
     "clean": "rimraf lib",
+    "lint": "eslint src",
     "prepublish": "npm run clean && npm run build",
     "test": "mocha --compilers js:babel/register --recursive --require ./test/setup.js"
   },

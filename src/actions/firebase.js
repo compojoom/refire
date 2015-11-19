@@ -1,3 +1,4 @@
+import Firebase from 'firebase'
 import difference from 'lodash/array/difference'
 import uniq from 'lodash/array/uniq'
 
@@ -13,6 +14,9 @@ export const INITIAL_FETCH_DONE = "INITIAL_FETCH_DONE"
 export const CONNECTED = "CONNECTED"
 export const USER_AUTHENTICATED = "USER_AUTHENTICATED"
 export const USER_UNAUTHENTICATED = "USER_UNAUTHENTICATED"
+export const USER_AUTHENTICATION_FAILED = "USER_AUTHENTICATION_FAILED"
+export const CONFIG_UPDATED = "CONFIG_UPDATED"
+export const UPDATE_ERROR =  "UPDATE_ERROR"
 
 function createRecord(key, value) {
   return {
@@ -150,5 +154,64 @@ export function authenticateUser(authData) {
 export function unauthenticateUser() {
   return {
     type: USER_UNAUTHENTICATED
+  }
+}
+
+export function passwordLogin(email, password) {
+  return (dispatch, getState) => {
+    const url = getState().firebase.url
+    const ref = new Firebase(url)
+    ref.authWithPassword(
+      { email: email, password: password },
+      (error) => {
+        if (error) {
+          dispatch(updateLoginError(error.message))
+        }
+        // authentication data is handled in syncFirebase.js
+      }
+    )
+  }
+}
+
+export function oAuthLogin(flow, provider) {
+  return (dispatch, getState) => {
+    const url = getState().firebase.url
+    const ref = new Firebase(url)
+    ref[flow](
+      provider,
+      (error) => {
+        if (error) {
+          dispatch(updateLoginError(error.message))
+        }
+        // authentication data is handled in syncFirebase.js
+      }
+    )
+  }
+}
+
+export function updateLoginError(error) {
+  return {
+    type: UPDATE_ERROR,
+    payload: {
+      field: "login",
+      error: error
+    }
+  }
+}
+
+export function clearLoginError() {
+  return {
+    type: UPDATE_ERROR,
+    payload: {
+      field: "login",
+      error: null
+    }
+  }
+}
+
+export function updateConfig(options) {
+  return {
+    type: CONFIG_UPDATED,
+    payload: options
   }
 }

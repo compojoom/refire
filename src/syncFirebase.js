@@ -15,7 +15,8 @@ import {
   completeInitialFetch,
   connect,
   authenticateUser,
-  unauthenticateUser
+  unauthenticateUser,
+  updateConfig
 } from './actions/firebase'
 
 function dispatchChildAdded(store, localBinding) {
@@ -175,6 +176,8 @@ export default function syncFirebase(options = {}) {
     throw new Error("syncFirebase: Firebase url not found in options")
   }
 
+  store.dispatch(updateConfig({url: url}))
+
   const rootRef = new Firebase(url)
   const firebaseRefs = {}
   const firebaseListeners = {}
@@ -277,7 +280,7 @@ export default function syncFirebase(options = {}) {
     store.dispatch(completeInitialFetch())
   }
 
-  const initialized = new Promise((resolve, reject) => {
+  const initialized = new Promise((resolve) => {
     const unsubscribe = store.subscribe(() => {
       const {firebase} = store.getState()
       if (firebase.connected && firebase.initialFetchDone) {

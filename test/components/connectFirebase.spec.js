@@ -104,7 +104,10 @@ describe('React', () => {
       expect(stub.props._status).toEqual({
         authenticatedUser: null,
         connected: true,
-        initialFetchDone: true
+        initialFetchDone: true,
+        errors: {
+          login: null
+        }
       })
       expect(stub.props.firebase).toBeA(Firebase)
     })
