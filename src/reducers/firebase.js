@@ -1,5 +1,5 @@
-import findIndex from 'lodash/array/findIndex';
-import createReducer from '../helpers/createReducer';
+import findIndex from 'lodash/array/findIndex'
+import createReducer from '../helpers/createReducer'
 import {
   ARRAY_CHILD_ADDED,
   ARRAY_CHILD_CHANGED,
@@ -13,20 +13,20 @@ import {
   CONNECTED,
   USER_AUTHENTICATED,
   USER_UNAUTHENTICATED
-} from '../actions/firebase';
+} from '../actions/firebase'
 
 function indexForKey(array, key) {
-  return findIndex(array, element => element.key === key);
+  return findIndex(array, element => element.key === key)
 }
 
 function arrayChildAdded(state, action) {
-  const {payload: {path, key, value, previousChildKey}} = action;
-  const newArray = [...state.stores[path].value];
+  const {payload: {path, key, value, previousChildKey}} = action
+  const newArray = [...state.stores[path].value]
   const insertionIndex = previousChildKey === null
     ? 0
-    : indexForKey(newArray, previousChildKey) + 1;
+    : indexForKey(newArray, previousChildKey) + 1
 
-  newArray.splice(insertionIndex, 0, value);
+  newArray.splice(insertionIndex, 0, value)
 
   return {
     ...state,
@@ -37,13 +37,13 @@ function arrayChildAdded(state, action) {
         value: newArray
       }
     }
-  };
+  }
 }
 
 function arrayChildChanged(state, action) {
-  const {payload: {path, key, value}} = action;
-  const newArray = [...state.stores[path].value];
-  newArray[indexForKey(newArray, key)] = value;
+  const {payload: {path, key, value}} = action
+  const newArray = [...state.stores[path].value]
+  newArray[indexForKey(newArray, key)] = value
 
   return {
     ...state,
@@ -54,20 +54,20 @@ function arrayChildChanged(state, action) {
         value: newArray
       }
     }
-  };
+  }
 }
 
 function arrayChildMoved(state, action) {
-  const {payload: {path, key, previousChildKey}} = action;
-  const newArray = [...state.stores[path].value];
-  const currentIndex = indexForKey(newArray, key);
-  const record = newArray.splice(currentIndex, 1)[0];
+  const {payload: {path, key, previousChildKey}} = action
+  const newArray = [...state.stores[path].value]
+  const currentIndex = indexForKey(newArray, key)
+  const record = newArray.splice(currentIndex, 1)[0]
 
   const insertionIndex = previousChildKey === null
     ? 0
-    : indexForKey(newArray, previousChildKey) + 1;
+    : indexForKey(newArray, previousChildKey) + 1
 
-  newArray.splice(insertionIndex, 0, record);
+  newArray.splice(insertionIndex, 0, record)
 
   return {
     ...state,
@@ -78,13 +78,13 @@ function arrayChildMoved(state, action) {
         value: newArray
       }
     }
-  };
+  }
 }
 
 function arrayChildRemoved(state, action) {
-  const {payload: {path, key}} = action;
-  const newArray = [...state.stores[path].value];
-  newArray.splice(indexForKey(newArray, key), 1);
+  const {payload: {path, key}} = action
+  const newArray = [...state.stores[path].value]
+  newArray.splice(indexForKey(newArray, key), 1)
 
   return {
     ...state,
@@ -95,22 +95,22 @@ function arrayChildRemoved(state, action) {
         value: newArray
       }
     }
-  };
+  }
 }
 
 function valueReplaced(state, action) {
-  const {payload: {path, value}} = action;
+  const {payload: {path, value}} = action
   return {
     ...state,
     stores: {
       ...state.stores,
       [path]: value
     }
-  };
+  }
 }
 
 function initialValueReceived(state, action) {
-  const {payload: {path}} = action;
+  const {payload: {path}} = action
   return {
     ...state,
     initialValuesReceived: [...state.initialValuesReceived, path]
@@ -135,21 +135,21 @@ function userAuthenticated(state, action) {
   return {
     ...state,
     authenticatedUser: action.payload
-  };
+  }
 }
 
 function userUnauthenticated(state, action) {
   return {
     ...state,
     authenticatedUser: null
-  };
+  }
 }
 
 export default function(bindings) {
   const initialStores = Object.keys(bindings).reduce((obj, path) => {
-    obj[path] = null;
-    return obj;
-  }, {});
+    obj[path] = null
+    return obj
+  }, {})
 
   const initialState = {
     authenticatedUser: null,
@@ -157,7 +157,7 @@ export default function(bindings) {
     initialFetchDone: false,
     initialValuesReceived: [],
     stores: initialStores
-  };
+  }
 
   return createReducer(initialState, {
     [ARRAY_CHILD_ADDED]: arrayChildAdded,
@@ -172,5 +172,5 @@ export default function(bindings) {
     [CONNECTED]: connected,
     [USER_AUTHENTICATED]: userAuthenticated,
     [USER_UNAUTHENTICATED]: userUnauthenticated
-  });
+  })
 }

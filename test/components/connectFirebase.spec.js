@@ -1,50 +1,50 @@
-import expect from 'expect';
-import React, { createClass, Children, PropTypes, Component } from 'react';
-import ReactDOM from 'react-dom';
-import TestUtils from 'react-addons-test-utils';
-import { createStore } from 'redux';
+import expect from 'expect'
+import React, { createClass, Children, PropTypes, Component } from 'react'
+import ReactDOM from 'react-dom'
+import TestUtils from 'react-addons-test-utils'
+import { createStore } from 'redux'
 
-import originalWebsocket from 'faye-websocket';
-import proxyquire from 'proxyquire';
+import originalWebsocket from 'faye-websocket'
+import proxyquire from 'proxyquire'
 
 const Firebase = proxyquire('firebase', {
   'faye-websocket': {
     Client: function (url) {
-      url = url.replace(/dummy\d+\.firebaseio\.test/i, 'localhost').replace('wss://', 'ws://');
-      return new originalWebsocket.Client(url);
+      url = url.replace(/dummy\d+\.firebaseio\.test/i, 'localhost').replace('wss://', 'ws://')
+      return new originalWebsocket.Client(url)
     }
   }
-});
+})
 
-import { connectFirebase } from '../../src/index';
+import { connectFirebase } from '../../src/index'
 import {
   initServer,
   initStore,
   initSync,
   initCounterReducer,
   incrementCounter
-} from '../helpers';
+} from '../helpers'
 
-const PORT = 46000;
+const PORT = 46000
 
 describe('React', () => {
   describe('connectFirebase', () => {
-    let server;
-    let unsubscribe;
-    let sequentialConnectionId = 0;
+    let server
+    let unsubscribe
+    let sequentialConnectionId = 0
 
   	afterEach(function () {
   		if (server) {
-  			server.close();
-  			server = null;
+  			server.close()
+  			server = null
   		}
       if (unsubscribe) {
-        unsubscribe();
+        unsubscribe()
       }
-  	});
+  	})
 
   	function newServerUrl() {
-  		return 'ws://dummy' + (sequentialConnectionId++) + '.firebaseio.test:' + PORT + '/';
+  		return 'ws://dummy' + (sequentialConnectionId++) + '.firebaseio.test:' + PORT + '/'
   	}
 
     class ProviderMock extends Component {
@@ -54,8 +54,8 @@ describe('React', () => {
       }
 
       constructor(props) {
-        super(props);
-        this.firebase = new Firebase(props.url);
+        super(props)
+        this.firebase = new Firebase(props.url)
       }
 
       getChildContext() {
@@ -77,15 +77,15 @@ describe('React', () => {
     }
 
     it('should provide _status and Firebase ref as firebase prop', async () => {
-      let initialized, store;
+      let initialized, store
       ({initialized, server, unsubscribe, store} = initSync({
         bindings: {},
         data: {},
         port: PORT,
         url: newServerUrl()
-      }));
+      }))
 
-      await initialized;
+      await initialized
 
       @connectFirebase(state => ({firebase: ["_status"]}))
       class Counter extends Component {
@@ -98,27 +98,27 @@ describe('React', () => {
         <ProviderMock store={store} url="https://dummy1.firebaseio.test/">
           <Counter />
         </ProviderMock>
-      );
+      )
 
-      const stub = TestUtils.findRenderedComponentWithType(tree, Passthrough);
+      const stub = TestUtils.findRenderedComponentWithType(tree, Passthrough)
       expect(stub.props._status).toEqual({
         authenticatedUser: null,
         connected: true,
         initialFetchDone: true
-      });
-      expect(stub.props.firebase).toBeA(Firebase);
-    });
+      })
+      expect(stub.props.firebase).toBeA(Firebase)
+    })
 
     it('should map primitives as props', async () => {
-      let initialized, store;
+      let initialized, store
       ({initialized, server, unsubscribe, store} = initSync({
         bindings: {counter: {path: "counter"}},
         data: {counter: 5},
         port: PORT,
         url: newServerUrl()
-      }));
+      }))
 
-      await initialized;
+      await initialized
 
       @connectFirebase(state => ({firebase: ["counter"]}))
       class Counter extends Component {
@@ -131,14 +131,14 @@ describe('React', () => {
         <ProviderMock store={store} url="https://dummy1.firebaseio.test/">
           <Counter />
         </ProviderMock>
-      );
+      )
 
-      const stub = TestUtils.findRenderedComponentWithType(tree, Passthrough);
-      expect(stub.props.counter).toEqual({ key: 'counter', value: 5 });
-    });
+      const stub = TestUtils.findRenderedComponentWithType(tree, Passthrough)
+      expect(stub.props.counter).toEqual({ key: 'counter', value: 5 })
+    })
 
     it('should map arrays as props', async () => {
-      let initialized, store;
+      let initialized, store
       ({initialized, server, unsubscribe, store} = initSync({
         bindings: {
           posts: {
@@ -153,9 +153,9 @@ describe('React', () => {
         },
         port: PORT,
         url: newServerUrl()
-      }));
+      }))
 
-      await initialized;
+      await initialized
 
       @connectFirebase(state => ({firebase: ["posts"]}))
       class Counter extends Component {
@@ -168,9 +168,9 @@ describe('React', () => {
         <ProviderMock store={store} url="https://dummy1.firebaseio.test/">
           <Counter />
         </ProviderMock>
-      );
+      )
 
-      const stub = TestUtils.findRenderedComponentWithType(tree, Passthrough);
+      const stub = TestUtils.findRenderedComponentWithType(tree, Passthrough)
       expect(stub.props.posts).toEqual({
         key: 'posts',
         value: [
@@ -183,19 +183,19 @@ describe('React', () => {
             }
           }
         ]
-      });
-    });
+      })
+    })
 
     it('should map objects as props', async () => {
-      let initialized, store;
+      let initialized, store
       ({initialized, server, unsubscribe, store} = initSync({
         bindings: { user: {type: "Object", path: "user"} },
         data: { user: {name: "Test user", email: "test@test.dev"} },
         port: PORT,
         url: newServerUrl()
-      }));
+      }))
 
-      await initialized;
+      await initialized
 
       @connectFirebase(state => ({firebase: ["user"]}))
       class Counter extends Component {
@@ -208,17 +208,17 @@ describe('React', () => {
         <ProviderMock store={store} url="https://dummy1.firebaseio.test/">
           <Counter />
         </ProviderMock>
-      );
+      )
 
-      const stub = TestUtils.findRenderedComponentWithType(tree, Passthrough);
+      const stub = TestUtils.findRenderedComponentWithType(tree, Passthrough)
       expect(stub.props.user).toEqual({
         key: "user",
         value: {name: "Test user", email: "test@test.dev"}
-      });
-    });
+      })
+    })
 
     it('should map prop as null if unsubscribed', async () => {
-      let initialized, store;
+      let initialized, store
       ({initialized, server, unsubscribe, store} = initSync({
         bindings: {
           user: {
@@ -227,7 +227,7 @@ describe('React', () => {
               if (state.counter === 1) {
                 return "user"
               } else {
-                return null;
+                return null
               }
             }
           }
@@ -235,9 +235,9 @@ describe('React', () => {
         data: { user: {name: "Test user", email: "test@test.dev"} },
         port: PORT,
         url: newServerUrl()
-      }));
+      }))
 
-      await initialized;
+      await initialized
 
       @connectFirebase(state => ({firebase: ["user"]}))
       class Counter extends Component {
@@ -250,29 +250,29 @@ describe('React', () => {
         <ProviderMock store={store} url="https://dummy1.firebaseio.test/">
           <Counter />
         </ProviderMock>
-      );
+      )
 
-      let stub = TestUtils.findRenderedComponentWithType(tree, Passthrough);
+      let stub = TestUtils.findRenderedComponentWithType(tree, Passthrough)
       expect(stub.props.user).toEqual({
         key: "user",
         value: {name: "Test user", email: "test@test.dev"}
-      });
+      })
 
-      store.dispatch(incrementCounter());
+      store.dispatch(incrementCounter())
 
-      stub = TestUtils.findRenderedComponentWithType(tree, Passthrough);
-      expect(stub.props.user).toEqual(null);
-    });
+      stub = TestUtils.findRenderedComponentWithType(tree, Passthrough)
+      expect(stub.props.user).toEqual(null)
+    })
 
     it('should map prop value if subscribed', async () => {
-      let initialized, store;
+      let initialized, store
       ({initialized, server, unsubscribe, store} = initSync({
         bindings: {
           user: {
             type: "Object",
             path: state => {
               if (state.counter === 1) {
-                return null;
+                return null
               } else {
                 return "user"
               }
@@ -282,9 +282,9 @@ describe('React', () => {
         data: { user: {name: "Test user", email: "test@test.dev"} },
         port: PORT,
         url: newServerUrl()
-      }));
+      }))
 
-      await initialized;
+      await initialized
 
       @connectFirebase(state => ({firebase: ["user"]}))
       class Counter extends Component {
@@ -297,34 +297,34 @@ describe('React', () => {
         <ProviderMock store={store} url="https://dummy1.firebaseio.test/">
           <Counter />
         </ProviderMock>
-      );
+      )
 
-      let stub = TestUtils.findRenderedComponentWithType(tree, Passthrough);
-      expect(stub.props.user).toEqual(null);
+      let stub = TestUtils.findRenderedComponentWithType(tree, Passthrough)
+      expect(stub.props.user).toEqual(null)
 
-      store.dispatch(incrementCounter());
+      store.dispatch(incrementCounter())
 
       const unsub = store.subscribe(() => {
-        stub = TestUtils.findRenderedComponentWithType(tree, Passthrough);
+        stub = TestUtils.findRenderedComponentWithType(tree, Passthrough)
         expect(stub.props.user).toEqual({
           key: "user",
           value: {name: "Test user", email: "test@test.dev"}
-        });
-        unsub();
-      });
-    });
+        })
+        unsub()
+      })
+    })
 
     it('should map correct value if unsubscribed & resubscribed', async () => {
-      let initialized, store;
+      let initialized, store
       ({initialized, server, unsubscribe, store} = initSync({
         bindings: {
           user: {
             type: "Object",
             path: state => {
               if (state.counter === 1) {
-                return "users/1";
+                return "users/1"
               } else {
-                return "users/2";
+                return "users/2"
               }
             }
           }
@@ -341,9 +341,9 @@ describe('React', () => {
         },
         port: PORT,
         url: newServerUrl()
-      }));
+      }))
 
-      await initialized;
+      await initialized
 
       @connectFirebase(state => ({firebase: ["user"]}))
       class Counter extends Component {
@@ -356,25 +356,25 @@ describe('React', () => {
         <ProviderMock store={store} url="https://dummy1.firebaseio.test/">
           <Counter />
         </ProviderMock>
-      );
+      )
 
-      let stub = TestUtils.findRenderedComponentWithType(tree, Passthrough);
+      let stub = TestUtils.findRenderedComponentWithType(tree, Passthrough)
       expect(stub.props.user).toEqual({
         key: "1",
         value: {name: "First user", email: "first@test.dev"}
-      });
+      })
 
-      store.dispatch(incrementCounter());
+      store.dispatch(incrementCounter())
 
       const unsub = store.subscribe(() => {
-        stub = TestUtils.findRenderedComponentWithType(tree, Passthrough);
+        stub = TestUtils.findRenderedComponentWithType(tree, Passthrough)
         expect(stub.props.user).toEqual({
           key: "2",
           value: {name: "Second user", email: "second@test.dev"}
-        });
-        unsub();
-      });
-    });
+        })
+        unsub()
+      })
+    })
 
-  });
-});
+  })
+})
