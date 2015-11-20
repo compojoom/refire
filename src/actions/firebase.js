@@ -284,3 +284,7 @@ export function createUser(email, password) {
 export function clearLoginError() {
   return updateError("login", null)
 }
+
+export function clearRegistrationError() {
+  return updateError("createUser", null)
+}

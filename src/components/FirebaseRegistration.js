@@ -1,22 +1,33 @@
 import React, { Component, PropTypes } from 'react'
 import { connect } from 'react-redux'
 import createConnect from './connectFirebase'
-import { clearLoginError, passwordLogin } from '../actions/firebase'
+import { clearRegistrationError, createUser } from '../actions/firebase'
 const connectFirebase = createConnect(React, connect)
 
+// default validator assumes that each field has some value
 const defaultValidator = state => {
   return Object.keys(state).every(field => {
     return !!state[field]
   })
 }
 
+const defaultSubmit = (dispatch, state) => {
+  return dispatch(
+    createUser(state)
+  ).catch(() => {})
+}
+
 export default function(options = {}) {
 
-  const {validator = defaultValidator} = options
+  const {
+    fields = ["email", "password"],
+    submit = defaultSubmit,
+    validator = defaultValidator
+  } = options
 
   return WrappedComponent => {
     @connectFirebase(state => ({firebase: ["_status"]}))
-    class FirebaseLogin extends Component {
+    class FirebaseRegistration extends Component {
 
       static propTypes = {
         dispatch: PropTypes.func,
@@ -25,48 +36,39 @@ export default function(options = {}) {
 
       constructor(props) {
         super(props)
-        this.state = {
-          email: null,
-          password: null
-        }
+        this.state = fields.reduce((initialState, field) => {
+          return {...initialState, [field]: null}
+        }, {})
       }
 
       submit(event) {
         event.preventDefault()
-        this.props.dispatch(
-          passwordLogin(this.state.email, this.state.password)
-        ).catch(() => {})
+        submit(this.props.dispatch, this.state)
       }
 
-      updateEmail(event) {
+      update(event, field) {
         const {errors: {login: error}} = this.props._status
         if (error) {
-          this.props.dispatch(clearLoginError())
+          this.props.dispatch(clearRegistrationError())
         }
-        this.setState({email: event.target.value})
-      }
-
-      updatePassword(event) {
-        const {errors: {login: error}} = this.props._status
-        if (error) {
-          this.props.dispatch(clearLoginError())
-        }
-        this.setState({password: event.target.value})
+        this.setState({[field]: event.target.value})
       }
 
       render() {
         const {
-          errors: {login: error},
-          processing: {login: processing},
-          completed: {login: completed}
+          errors: {createUser: error},
+          processing: {createUser: processing},
+          completed: {createUser: completed}
         } = this.props._status
 
         const extraProps = {
-          email: this.state.email,
-          password: this.state.password,
+          ...this.state,
           submit: this.submit.bind(this),
-          updateEmail: this.updateEmail.bind(this),
-          updatePassword: this.updatePassword.bind(this),
+          update: (field) => {
+            return (event) => {
+              this.update(event, field)
+            }
+          },
           validInput: validator(this.state),
           error: error,
           processing: processing,
@@ -78,6 +80,6 @@ export default function(options = {}) {
 
     }
 
-    return FirebaseLogin
+    return FirebaseRegistration
   }
 }
