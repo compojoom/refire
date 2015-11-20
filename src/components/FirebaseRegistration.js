@@ -47,7 +47,7 @@ export default function(options = {}) {
       }
 
       update(event, field) {
-        const {errors: {login: error}} = this.props._status
+        const {errors: {createUser: error}} = this.props._status
         if (error) {
           this.props.dispatch(clearRegistrationError())
         }

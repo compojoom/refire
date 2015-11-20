@@ -24,6 +24,10 @@ const createUserErrors = {
   "INVALID_EMAIL": "The specified email is not a valid email."
 }
 
+const resetPasswordErrors = {
+  "INVALID_USER": "The specified user account does not exist."
+}
+
 function createRecord(key, value) {
   return {
     key: key,
@@ -281,10 +285,39 @@ export function createUser(email, password) {
   }
 }
 
+export function resetPassword(email) {
+  return (dispatch, getState) => {
+    dispatch(updateProcessing("resetPassword", true))
+
+    const url = getState().firebase.url
+    const ref = new Firebase(url)
+    ref.resetPassword({
+      email: email
+    }, (error) => {
+      if (error) {
+        dispatch(
+          updateError(
+            "resetPassword",
+            resetPasswordErrors[error.code] || error.message
+          )
+        )
+        dispatch(updateProcessing("resetPassword", false))
+      } else {
+        dispatch(updateProcessing("resetPassword", false))
+        dispatch(updateCompleted("resetPassword", true))
+      }
+    })
+  }
+}
+
 export function clearLoginError() {
   return updateError("login", null)
 }
 
 export function clearRegistrationError() {
   return updateError("createUser", null)
+}
+
+export function clearResetPasswordError() {
+  return updateError("resetPassword", null)
 }
