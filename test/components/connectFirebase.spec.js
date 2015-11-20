@@ -106,7 +106,16 @@ describe('React', () => {
         connected: true,
         initialFetchDone: true,
         errors: {
-          login: null
+          login: null,
+          createUser: null
+        },
+        processing: {
+          login: false,
+          createUser: false
+        },
+        completed: {
+          login: false,
+          createUser: false
         }
       })
       expect(stub.props.firebase).toBeA(Firebase)

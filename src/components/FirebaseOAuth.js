@@ -6,6 +6,7 @@ const validFlows = ["authWithOAuthPopup", "authWithOAuthRedirect"]
 
 @connect()
 class FirebaseOAuth extends Component {
+
   static propTypes = {
     provider: PropTypes.oneOf(validProviders),
     flow: PropTypes.oneOf(validFlows)
@@ -19,7 +20,7 @@ class FirebaseOAuth extends Component {
     const flow = this.props.flow || "authWithOAuthPopup"
     this.props.dispatch(
       oAuthLogin(flow, this.props.provider)
-    )
+    ).catch(() => {})
   }
 
   render() {
@@ -29,6 +30,7 @@ class FirebaseOAuth extends Component {
       })
     )
   }
+
 }
 
 export default FirebaseOAuth

@@ -18,6 +18,11 @@ export default function(options = {}) {
     @connectFirebase(state => ({firebase: ["_status"]}))
     class FirebaseLogin extends Component {
 
+      static propTypes = {
+        dispatch: PropTypes.func,
+        _status: PropTypes.object
+      }
+
       constructor(props) {
         super(props)
         this.state = {
@@ -30,7 +35,7 @@ export default function(options = {}) {
         event.preventDefault()
         this.props.dispatch(
           passwordLogin(this.state.email, this.state.password)
-        )
+        ).catch(() => {})
       }
 
       updateEmail(event) {
@@ -50,7 +55,11 @@ export default function(options = {}) {
       }
 
       render() {
-        const {errors: {login: error}} = this.props._status
+        const {
+          errors: {login: error},
+          processing: {login: processing},
+          completed: {login: completed}
+        } = this.props._status
         const extraProps = {
           email: this.state.email,
           password: this.state.password,
@@ -58,7 +67,9 @@ export default function(options = {}) {
           updateEmail: this.updateEmail.bind(this),
           updatePassword: this.updatePassword.bind(this),
           validInput: validator(this.state),
-          error: error
+          error: error,
+          processing: processing,
+          completed: completed
         }
         return <WrappedComponent {...this.props} {...extraProps} />
       }

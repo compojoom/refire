@@ -14,8 +14,8 @@ export default function createConnect(React, connect) {
     const firebaseStateToProps = (state, localBindings) => {
       return (localBindings || []).reduce((stateSlice, binding) => {
         if (binding === "_status") {
-          const {authenticatedUser, connected, errors, initialFetchDone} = state.firebase
-          stateSlice[binding] = {authenticatedUser, connected, errors, initialFetchDone}
+          const { initialValuesReceived, stores, url, ...slice} = state.firebase
+          stateSlice[binding] = slice
         } else {
           stateSlice[binding] = state.firebase.stores[binding]
         }

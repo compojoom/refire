@@ -14,14 +14,57 @@ export const INITIAL_FETCH_DONE = "INITIAL_FETCH_DONE"
 export const CONNECTED = "CONNECTED"
 export const USER_AUTHENTICATED = "USER_AUTHENTICATED"
 export const USER_UNAUTHENTICATED = "USER_UNAUTHENTICATED"
-export const USER_AUTHENTICATION_FAILED = "USER_AUTHENTICATION_FAILED"
 export const CONFIG_UPDATED = "CONFIG_UPDATED"
-export const UPDATE_ERROR =  "UPDATE_ERROR"
+export const ERROR_UPDATED = "ERROR_UPDATED"
+export const PROCESSING_UPDATED = "PROCESSING_UPDATED"
+export const COMPLETED_UPDATED = "COMPLETED_UPDATED"
+
+const createUserErrors = {
+  "EMAIL_TAKEN": "The new user account cannot be created because the email is already in use.",
+  "INVALID_EMAIL": "The specified email is not a valid email."
+}
 
 function createRecord(key, value) {
   return {
     key: key,
     value: value
+  }
+}
+
+function updateProcessing(field, value) {
+  return {
+    type: PROCESSING_UPDATED,
+    payload: {
+      field: field,
+      value: value
+    }
+  }
+}
+
+function updateError(field, error) {
+  return {
+    type: ERROR_UPDATED,
+    payload: {
+      field: field,
+      error: error
+    }
+  }
+}
+
+function updateCompleted(field, value) {
+  return {
+    type: COMPLETED_UPDATED,
+    payload: {
+      field: field,
+      value: value
+    }
+  }
+}
+
+export function updateConfig(options) {
+  return {
+    type: CONFIG_UPDATED,
+    payload: options
   }
 }
 
@@ -159,59 +202,85 @@ export function unauthenticateUser() {
 
 export function passwordLogin(email, password) {
   return (dispatch, getState) => {
-    const url = getState().firebase.url
-    const ref = new Firebase(url)
-    ref.authWithPassword(
-      { email: email, password: password },
-      (error) => {
-        if (error) {
-          dispatch(updateLoginError(error.message))
+    return new Promise((resolve, reject) => {
+      dispatch(updateProcessing("login", true))
+      const url = getState().firebase.url
+      const ref = new Firebase(url)
+      ref.authWithPassword(
+        { email: email, password: password },
+        (error) => {
+          if (error) {
+            dispatch(updateError("login", error.message))
+            dispatch(updateProcessing("login", false))
+            return reject()
+          } else {
+            dispatch(updateProcessing("login", false))
+            dispatch(updateCompleted("login", true))
+            return resolve()
+          }
+          // authentication state changes are handled in syncFirebase.js
         }
-        // authentication data is handled in syncFirebase.js
-      }
-    )
+      )
+    })
   }
 }
 
 export function oAuthLogin(flow, provider) {
   return (dispatch, getState) => {
-    const url = getState().firebase.url
-    const ref = new Firebase(url)
-    ref[flow](
-      provider,
-      (error) => {
-        if (error) {
-          dispatch(updateLoginError(error.message))
+    return new Promise((resolve, reject) => {
+      dispatch(updateProcessing("login", true))
+
+      const url = getState().firebase.url
+      const ref = new Firebase(url)
+      ref[flow](
+        provider,
+        (error) => {
+          if (error) {
+            dispatch(updateError("login", error.message))
+            dispatch(updateProcessing("login", false))
+            return reject()
+          } else {
+            dispatch(updateProcessing("createUser", false))
+            dispatch(updateCompleted("login", true))
+            return resolve()
+          }
+          // authentication state changes are handled in syncFirebase.js
         }
-        // authentication data is handled in syncFirebase.js
-      }
-    )
+      )
+    })
   }
 }
 
-export function updateLoginError(error) {
-  return {
-    type: UPDATE_ERROR,
-    payload: {
-      field: "login",
-      error: error
-    }
+export function createUser(email, password) {
+  return (dispatch, getState) => {
+    return new Promise((resolve, reject) => {
+      dispatch(updateProcessing("createUser", true))
+
+      const url = getState().firebase.url
+      const ref = new Firebase(url)
+      ref.createUser({
+        email: email,
+        password: password
+      }, (error) => {
+        if (error) {
+          dispatch(
+            updateError(
+              "createUser",
+              createUserErrors[error.code] || error.message
+            )
+          )
+          dispatch(updateProcessing("createUser", false))
+          return reject()
+        } else {
+          dispatch(updateProcessing("createUser", false))
+          dispatch(updateCompleted("createUser", true))
+          return resolve()
+        }
+      })
+    })
   }
 }
 
 export function clearLoginError() {
-  return {
-    type: UPDATE_ERROR,
-    payload: {
-      field: "login",
-      error: null
-    }
-  }
-}
-
-export function updateConfig(options) {
-  return {
-    type: CONFIG_UPDATED,
-    payload: options
-  }
+  return updateError("login", null)
 }

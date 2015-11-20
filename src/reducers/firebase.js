@@ -14,7 +14,9 @@ import {
   USER_AUTHENTICATED,
   USER_UNAUTHENTICATED,
   CONFIG_UPDATED,
-  UPDATE_ERROR
+  ERROR_UPDATED,
+  PROCESSING_UPDATED,
+  COMPLETED_UPDATED
 } from '../actions/firebase'
 
 function indexForKey(array, key) {
@@ -166,6 +168,28 @@ function updateError(state, action) {
   }
 }
 
+function updateProcessing(state, action) {
+  const {payload: {field, value}} = action
+  return {
+    ...state,
+    processing: {
+      ...state.processing,
+      [field]: value
+    }
+  }
+}
+
+function updateCompleted(state, action) {
+  const {payload: {field, value}} = action
+  return {
+    ...state,
+    completed: {
+      ...state.completed,
+      [field]: value
+    }
+  }
+}
+
 export default function(bindings) {
   const initialStores = Object.keys(bindings).reduce((obj, path) => {
     obj[path] = null
@@ -180,7 +204,16 @@ export default function(bindings) {
     stores: initialStores,
     url: null,
     errors: {
-      login: null
+      login: null,
+      createUser: null
+    },
+    processing: {
+      login: false,
+      createUser: false
+    },
+    completed: {
+      login: false,
+      createUser: false
     }
   }
 
@@ -198,6 +231,8 @@ export default function(bindings) {
     [USER_AUTHENTICATED]: userAuthenticated,
     [USER_UNAUTHENTICATED]: userUnauthenticated,
     [CONFIG_UPDATED]: configUpdated,
-    [UPDATE_ERROR]: updateError
+    [ERROR_UPDATED]: updateError,
+    [PROCESSING_UPDATED]: updateProcessing,
+    [COMPLETED_UPDATED]: updateCompleted
   })
 }
