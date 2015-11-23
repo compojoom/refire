@@ -11,3 +11,5 @@ export { default as FirebaseWrite } from './components/FirebaseWrite'
 
 import { connect } from 'react-redux'
 export const { FirebaseProvider, connectFirebase } = createAll(React, connect)
+
+export Firebase from 'firebase'

@@ -20,7 +20,7 @@ export const ERROR_UPDATED = "ERROR_UPDATED"
 export const PROCESSING_UPDATED = "PROCESSING_UPDATED"
 export const COMPLETED_UPDATED = "COMPLETED_UPDATED"
 export const WRITE_PROCESSING_UPDATED = "WRITE_PROCESSING_UPDATED"
-export const WRITE_ERRORS_UPDATED = "WRITE_ERROR_UPDATED"
+export const WRITE_ERRORS_UPDATED = "WRITE_ERRORS_UPDATED"
 
 const createUserErrors = {
   "EMAIL_TAKEN": "The new user account cannot be created because the email is already in use.",
@@ -49,11 +49,10 @@ function updateProcessing(field, value) {
 }
 
 function updateWriteProcessing(options = {}) {
-  const {method, path, id, value} = options
+  const {path, id, value} = options
   return {
     type: WRITE_PROCESSING_UPDATED,
     payload: {
-      method: method,
       path: path,
       id: id,
       value: value
@@ -71,12 +70,10 @@ function updateError(field, error) {
   }
 }
 
-function updateWriteErrors(options = {}) {
-  const {method, path, error} = options
+function updateWriteErrors(path, error) {
   return {
     type: WRITE_ERRORS_UPDATED,
     payload: {
-      method: method,
       path: path,
       error: error
     }
@@ -341,18 +338,17 @@ export function resetPassword(email) {
 export function write(method, path, value) {
   return (dispatch, getState) => {
     const id = uuid.v4()
+    const finalPath = typeof path === "function"
+      ? path(getState())
+      : path
+
     dispatch(
       updateWriteProcessing({
-        method,
-        path,
+        path: finalPath,
         id: id,
         value: true
       })
     )
-
-    const finalPath = typeof path === "function"
-      ? path(getState())
-      : path
 
     const url = `${getState().firebase.url}${finalPath}`
     const ref = new Firebase(url)
@@ -361,13 +357,12 @@ export function write(method, path, value) {
       error => {
         if (error) {
           dispatch(
-            updateWriteErrors({method, path, error: error.message})
+            updateWriteErrors(finalPath, error.message)
           )
         }
         dispatch(
           updateWriteProcessing({
-            method,
-            path,
+            path: finalPath,
             id: id,
             value: false
           })
@@ -389,6 +384,6 @@ export function clearResetPasswordError() {
   return updateError("resetPassword", null)
 }
 
-export function clearWriteErrors(method, path) {
-  return updateWriteErrors({method, path, error: null})
+export function clearWriteErrors(path) {
+  return updateWriteErrors(path, null)
 }

@@ -1,4 +1,5 @@
 import findIndex from 'lodash/array/findIndex'
+import without from 'lodash/array/without'
 import createReducer from '../helpers/createReducer'
 import {
   ARRAY_CHILD_ADDED,
@@ -193,11 +194,41 @@ function updateCompleted(state, action) {
 }
 
 function updateWriteProcessing(state, action) {
+  const {payload: {path, id, value}} = action
+  const currentValue = state.writes.processing[path] || []
+  const newValue = value
+    ? [...currentValue, id]
+    : without(currentValue, id)
 
+  return {
+    ...state,
+    writes: {
+      ...state.writes,
+      processing: {
+        ...state.writes.processing,
+        [path]: newValue
+      }
+    }
+  }
 }
 
 function updateWriteErrors(state, action) {
-  
+  const {payload: {path, error}} = action
+  const currentValue = state.writes.errors[path] || []
+  const newValue = error
+    ? [...currentValue, error]
+    : []
+
+  return {
+    ...state,
+    writes: {
+      ...state.writes,
+      errors: {
+        ...state.writes.errors,
+        [path]: newValue
+      }
+    }
+  }
 }
 
 export default function(bindings) {

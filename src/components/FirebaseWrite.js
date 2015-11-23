@@ -1,8 +1,6 @@
 import React, { Component, PropTypes } from 'react'
 import { connect } from 'react-redux'
-//import createConnect from './connectFirebase'
 import { write, clearWriteErrors } from '../actions/firebase'
-//const connectFirebase = createConnect(React, connect)
 
 const validMethods = {
   push: true,
@@ -32,16 +30,8 @@ export default function(options = {}) {
         : path
 
       return {
-        processing: (
-          processing[method]
-            ? processing[method][firebasePath] || []
-            : []
-        ),
-        errors: (
-          errors[method]
-            ? errors[method][firebasePath] || []
-            : []
-        )
+        processing: processing[firebasePath] || [],
+        errors: errors[firebasePath] || []
       }
     })
     class FirebaseWrite extends Component {
@@ -53,9 +43,6 @@ export default function(options = {}) {
       }
 
       submit(value) {
-        console.log("MEHOD", method)
-        console.log("PATH", path)
-        console.log("VALUE", value)
         this.props.dispatch(
           write(method, path, value)
         )

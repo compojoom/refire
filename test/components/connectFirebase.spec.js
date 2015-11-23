@@ -119,6 +119,10 @@ describe('React', () => {
           login: false,
           createUser: false,
           resetPassword: false
+        },
+        writes: {
+          errors: {},
+          processing: {}
         }
       })
       expect(stub.props.firebase).toBeA(Firebase)

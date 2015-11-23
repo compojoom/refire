@@ -29,10 +29,11 @@
     "faye-websocket": "^0.10.0",
     "firebase-server": "^0.5.0",
     "jsdom": "^7.0.2",
+    "mocha": "^2.3.4",
     "proxyquire": "^1.7.3",
-    "react-addons-test-utils": "^0.14.0",
-    "react": "^0.14.0",
-    "react-dom": "^0.14.0",
+    "react": "^0.14.3",
+    "react-addons-test-utils": "^0.14.3",
+    "react-dom": "^0.14.3",
     "rimraf": "^2.4.3"
   },
   "dependencies": {
