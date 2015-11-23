@@ -1,4 +1,5 @@
 import Firebase from 'firebase'
+import uuid from 'node-uuid'
 import difference from 'lodash/array/difference'
 import uniq from 'lodash/array/uniq'
 
@@ -18,6 +19,8 @@ export const CONFIG_UPDATED = "CONFIG_UPDATED"
 export const ERROR_UPDATED = "ERROR_UPDATED"
 export const PROCESSING_UPDATED = "PROCESSING_UPDATED"
 export const COMPLETED_UPDATED = "COMPLETED_UPDATED"
+export const WRITE_PROCESSING_UPDATED = "WRITE_PROCESSING_UPDATED"
+export const WRITE_ERRORS_UPDATED = "WRITE_ERROR_UPDATED"
 
 const createUserErrors = {
   "EMAIL_TAKEN": "The new user account cannot be created because the email is already in use.",
@@ -45,11 +48,36 @@ function updateProcessing(field, value) {
   }
 }
 
+function updateWriteProcessing(options = {}) {
+  const {method, path, id, value} = options
+  return {
+    type: WRITE_PROCESSING_UPDATED,
+    payload: {
+      method: method,
+      path: path,
+      id: id,
+      value: value
+    }
+  }
+}
+
 function updateError(field, error) {
   return {
     type: ERROR_UPDATED,
     payload: {
       field: field,
+      error: error
+    }
+  }
+}
+
+function updateWriteErrors(options = {}) {
+  const {method, path, error} = options
+  return {
+    type: WRITE_ERRORS_UPDATED,
+    payload: {
+      method: method,
+      path: path,
       error: error
     }
   }
@@ -310,6 +338,45 @@ export function resetPassword(email) {
   }
 }
 
+export function write(method, path, value) {
+  return (dispatch, getState) => {
+    const id = uuid.v4()
+    dispatch(
+      updateWriteProcessing({
+        method,
+        path,
+        id: id,
+        value: true
+      })
+    )
+
+    const finalPath = typeof path === "function"
+      ? path(getState())
+      : path
+
+    const url = `${getState().firebase.url}${finalPath}`
+    const ref = new Firebase(url)
+    ref[method](
+      value,
+      error => {
+        if (error) {
+          dispatch(
+            updateWriteErrors({method, path, error: error.message})
+          )
+        }
+        dispatch(
+          updateWriteProcessing({
+            method,
+            path,
+            id: id,
+            value: false
+          })
+        )
+      }
+    )
+  }
+}
+
 export function clearLoginError() {
   return updateError("login", null)
 }
@@ -320,4 +387,8 @@ export function clearRegistrationError() {
 
 export function clearResetPasswordError() {
   return updateError("resetPassword", null)
+}
+
+export function clearWriteErrors(method, path) {
+  return updateWriteErrors({method, path, error: null})
 }
