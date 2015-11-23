@@ -50,7 +50,7 @@ export default function(options = {}) {
 
       clearErrors() {
         this.props.dispatch(
-          clearWriteErrors(method, path)
+          clearWriteErrors(path)
         )
       }
 
