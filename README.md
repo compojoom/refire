@@ -24,9 +24,9 @@ syncFirebase needs bindings, a Redux store instance and a Firebase instance url.
 
 ### Usage example
 ```javascript
-import { applyMiddleware, createStore, compose, combineReducers } from 'redux';
-import thunk from 'redux-thunk';
-import { firebaseReducer, syncFirebase } from 'redux-firebase-sync';
+import { applyMiddleware, createStore, compose, combineReducers } from 'redux'
+import thunk from 'redux-thunk'
+import { firebaseReducer, syncFirebase } from 'redux-firebase-sync'
 
 const firebaseBindings = {
   // Primitives can be defined without setting any type, just set the local sync path
@@ -55,19 +55,19 @@ const firebaseBindings = {
     type: "Object",
     path: state => {
       if (state.firebase.authenticatedUser) {
-        return `users/${state.firebase.authenticatedUser.uid}`;
+        return `users/${state.firebase.authenticatedUser.uid}`
       } else {
-        return null;
+        return null
       }
     }
   }
-};
+}
 
 const reducer = combineReducers({
   firebase: firebaseReducer(firebaseBindings),
   // your other reducers
-});
-const store = compose(applyMiddleware(thunk))(createStore)(reducer);
+})
+const store = compose(applyMiddleware(thunk))(createStore)(reducer)
 
 const {unsubscribe} = syncFirebase({
   store: store,
@@ -75,14 +75,14 @@ const {unsubscribe} = syncFirebase({
   bindings: firebaseBindings,
   onAuth: (authData) => {},
   onCancel: (error) => {}
-});
+})
 ```
 
-## React components
+## React components & functions
 
 ### &lt;FirebaseProvider url={yourFirebaseUrl}&gt;
 
-Puts a Firebase instance reference to React's context, so that when you use `connectFirebase` down the tree, the reference gets automatically passed as `firebase` prop.
+Puts a Firebase instance reference to React's context, you can use `static contextTypes = { firebase: PropTypes.object }` & `this.context.firebase` in any component down the tree to get reference to Firebase instance.
 
 ```javascript
 class Root extends Component {
@@ -97,31 +97,26 @@ class Root extends Component {
           </Router>
         </Provider>
       </FirebaseProvider>
-    );
+    )
   }
 }
 ```
 
-### connectFirebase([mapStateToProps], [mapDispatchToProps], [mergeProps], [options])
+### firebaseToProps(localBindings, mapStateToProps)
 
-Keeps provided React component in sync with given firebase paths in Redux store.
+Creates selector function for [react-redux's connect](https://github.com/rackt/react-redux/blob/master/docs/api.md#connectmapstatetoprops-mapdispatchtoprops-mergeprops-options).
 
-Same function signature as in [react-redux's connect](https://github.com/rackt/react-redux/blob/master/docs/api.md#connectmapstatetoprops-mapdispatchtoprops-mergeprops-options).
+firebaseToProps will return the content of your given local bindings (array) as props.
 
-You can use connectFirebase just like react-redux's connect, but it provides you some extra functionality.
-
-You can get your local binding as a prop by returning `{firebase: ["yourLocalBinding"]}` from mapStateToProps.
-
-Firebase reference provided by **&lt;FirebaseProvider&gt;** will also be available as `firebase` prop.
+If you also need to return something else from Redux, pass your normal mapStateToProps as second parameter, firebaseToProps will merge the results.
 
 ```javascript
-@connectFirebase(
-  state => ({firebase: ["counter"]})
+@connect(
+  firebaseToProps(["counter"])
 )
 class Counter extends Component {
   render() {
     // counter available as this.props.counter
-    // Firebase reference available as this.props.firebase
   }
 }
 ```
@@ -129,17 +124,17 @@ class Counter extends Component {
 There's also special `_status` binding available, it provides an object with latest `authenticatedUser`, `connected`, `errors` and `initialFetchDone` values.
 
 ```javascript
-@connectFirebase(state => ({firebase: ["_status"]}))
+@connect(firebaseToProps(["_status"]))
 class App extends Component {
 
   render() {
-    const {_status: status} = this.props;
-    const connected = status.connected && status.initialFetchDone;
+    const { _status: status } = this.props
+    const connected = status.connected && status.initialFetchDone
 
     if (!connected) {
       return (
         <div>Loading...</div>
-      );
+      )
     } else {
       // firebase connected & all initial fetches done
     }
@@ -163,17 +158,17 @@ Primitives and Objects could be returned as they are, but then consumption of Ar
 ```javascript
 // Primitives
 // {key: "counter", value: 1}
-const {value: counter} = this.props.counter;
+const {value: counter} = this.props.counter
 
 // Objects
 // {key: "project", value: {title: "Cool"}}
-const {value: project} = this.props.project;
+const {value: project} = this.props.project
 
 // Arrays
 // {key: "projects", value: [{key: "-K1XY-B3ZR...", value: {title: "redux-firebase-sync"}}]}
-const {value: projects} = this.props.projects;
+const {value: projects} = this.props.projects
 projects.map(record => {
-  const {key: id, value: project} = record;
-  return <li key={id}>{project.title}</li>;
+  const {key: id, value: project} = record
+  return <li key={id}>{project.title}</li>
 })
 ```
