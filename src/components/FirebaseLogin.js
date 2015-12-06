@@ -1,8 +1,7 @@
 import React, { Component, PropTypes } from 'react'
 import { connect } from 'react-redux'
-import createConnect from './connectFirebase'
+import { firebaseToProps } from '../index'
 import { clearLoginError, passwordLogin } from '../actions/firebase'
-const connectFirebase = createConnect(React, connect)
 
 const defaultValidator = state => {
   return Object.keys(state).every(field => {
@@ -15,7 +14,8 @@ export default function(options = {}) {
   const {validator = defaultValidator} = options
 
   return WrappedComponent => {
-    @connectFirebase(state => ({firebase: ["_status"]}))
+
+    @connect(firebaseToProps(["_status"]))
     class FirebaseLogin extends Component {
 
       static propTypes = {
@@ -39,26 +39,26 @@ export default function(options = {}) {
       }
 
       updateEmail(event) {
-        const {errors: {login: error}} = this.props._status
+        const { errors: { login: error } } = this.props._status
         if (error) {
           this.props.dispatch(clearLoginError())
         }
-        this.setState({email: event.target.value})
+        this.setState({ email: event.target.value })
       }
 
       updatePassword(event) {
-        const {errors: {login: error}} = this.props._status
+        const { errors: { login: error } } = this.props._status
         if (error) {
           this.props.dispatch(clearLoginError())
         }
-        this.setState({password: event.target.value})
+        this.setState({ password: event.target.value })
       }
 
       render() {
         const {
-          errors: {login: error},
-          processing: {login: processing},
-          completed: {login: completed}
+          errors: { login: error },
+          processing: { login: processing },
+          completed: { login: completed }
         } = this.props._status
 
         const extraProps = {

@@ -22,6 +22,7 @@ export default function(options = {}) {
   }
 
   return WrappedComponent => {
+
     @connect(state => {
       const processing = state.firebase.writes.processing
       const errors = state.firebase.writes.errors

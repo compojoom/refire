@@ -1,8 +1,7 @@
 import React, { Component, PropTypes } from 'react'
 import { connect } from 'react-redux'
-import createConnect from './connectFirebase'
+import { firebaseToProps } from '../index'
 import { resetPassword, clearResetPasswordError } from '../actions/firebase'
-const connectFirebase = createConnect(React, connect)
 
 const defaultValidator = input => {
   return !!input
@@ -13,7 +12,8 @@ export default function(options = {}) {
   const {validator = defaultValidator} = options
 
   return WrappedComponent => {
-    @connectFirebase(state => ({firebase: ["_status"]}))
+
+    @connect(firebaseToProps(["_status"]))
     class FirebaseResetPassword extends Component {
 
       static propTypes = {
@@ -36,18 +36,18 @@ export default function(options = {}) {
       }
 
       updateEmail(event) {
-        const {errors: {resetPassword: error}} = this.props._status
+        const { errors: { resetPassword: error } } = this.props._status
         if (error) {
           this.props.dispatch(clearResetPasswordError())
         }
-        this.setState({email: event.target.value})
+        this.setState({ email: event.target.value })
       }
 
       render() {
         const {
-          errors: {resetPassword: error},
-          processing: {resetPassword: processing},
-          completed: {resetPassword: completed}
+          errors: { resetPassword: error },
+          processing: { resetPassword: processing },
+          completed: { resetPassword: completed }
         } = this.props._status
 
         const extraProps = {

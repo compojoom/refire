@@ -3,6 +3,7 @@ import React, { createClass, Children, PropTypes, Component } from 'react'
 import ReactDOM from 'react-dom'
 import TestUtils from 'react-addons-test-utils'
 import { createStore } from 'redux'
+import { connect } from 'react-redux'
 
 import originalWebsocket from 'faye-websocket'
 import proxyquire from 'proxyquire'
@@ -16,14 +17,14 @@ const Firebase = proxyquire('firebase', {
   }
 })
 
-import { connectFirebase } from '../../src/index'
+import { firebaseToProps } from '../src/index'
 import {
   initServer,
   initStore,
   initSync,
   initCounterReducer,
   incrementCounter
-} from '../helpers'
+} from './helpers'
 
 const PORT = 46000
 
@@ -76,7 +77,7 @@ describe('React', () => {
       }
     }
 
-    it('should provide _status and Firebase ref as firebase prop', async () => {
+    it('should provide _status', async () => {
       let initialized, store
       ({initialized, server, unsubscribe, store} = initSync({
         bindings: {},
@@ -87,7 +88,7 @@ describe('React', () => {
 
       await initialized
 
-      @connectFirebase(state => ({firebase: ["_status"]}))
+      @connect(firebaseToProps(["_status"]))
       class Counter extends Component {
         render() {
           return <Passthrough {...this.props} />
@@ -125,7 +126,6 @@ describe('React', () => {
           processing: {}
         }
       })
-      expect(stub.props.firebase).toBeA(Firebase)
     })
 
     it('should map primitives as props', async () => {
@@ -139,7 +139,7 @@ describe('React', () => {
 
       await initialized
 
-      @connectFirebase(state => ({firebase: ["counter"]}))
+      @connect(firebaseToProps(["counter"]))
       class Counter extends Component {
         render() {
           return <Passthrough {...this.props} />
@@ -176,7 +176,7 @@ describe('React', () => {
 
       await initialized
 
-      @connectFirebase(state => ({firebase: ["posts"]}))
+      @connect(firebaseToProps(["posts"]))
       class Counter extends Component {
         render() {
           return <Passthrough {...this.props} />
@@ -216,7 +216,7 @@ describe('React', () => {
 
       await initialized
 
-      @connectFirebase(state => ({firebase: ["user"]}))
+      @connect(firebaseToProps(["user"]))
       class Counter extends Component {
         render() {
           return <Passthrough {...this.props} />
@@ -258,7 +258,7 @@ describe('React', () => {
 
       await initialized
 
-      @connectFirebase(state => ({firebase: ["user"]}))
+      @connect(firebaseToProps(["user"]))
       class Counter extends Component {
         render() {
           return <Passthrough {...this.props} />
@@ -305,7 +305,7 @@ describe('React', () => {
 
       await initialized
 
-      @connectFirebase(state => ({firebase: ["user"]}))
+      @connect(firebaseToProps(["user"]))
       class Counter extends Component {
         render() {
           return <Passthrough {...this.props} />
@@ -364,7 +364,7 @@ describe('React', () => {
 
       await initialized
 
-      @connectFirebase(state => ({firebase: ["user"]}))
+      @connect(firebaseToProps(["user"]))
       class Counter extends Component {
         render() {
           return <Passthrough {...this.props} />

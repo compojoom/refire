@@ -1,8 +1,7 @@
 import React, { Component, PropTypes } from 'react'
 import { connect } from 'react-redux'
-import createConnect from './connectFirebase'
+import { firebaseToProps } from '../index'
 import { clearRegistrationError, createUser } from '../actions/firebase'
-const connectFirebase = createConnect(React, connect)
 
 // default validator assumes that each field has some value
 const defaultValidator = state => {
@@ -26,7 +25,8 @@ export default function(options = {}) {
   } = options
 
   return WrappedComponent => {
-    @connectFirebase(state => ({firebase: ["_status"]}))
+
+    @connect(firebaseToProps(["_status"]))
     class FirebaseRegistration extends Component {
 
       static propTypes = {
@@ -47,18 +47,18 @@ export default function(options = {}) {
       }
 
       update(event, field) {
-        const {errors: {createUser: error}} = this.props._status
+        const { errors: { createUser: error } } = this.props._status
         if (error) {
           this.props.dispatch(clearRegistrationError())
         }
-        this.setState({[field]: event.target.value})
+        this.setState({ [field]: event.target.value })
       }
 
       render() {
         const {
-          errors: {createUser: error},
-          processing: {createUser: processing},
-          completed: {createUser: completed}
+          errors: { createUser: error },
+          processing: { createUser: processing },
+          completed: { createUser: completed }
         } = this.props._status
 
         const extraProps = {
