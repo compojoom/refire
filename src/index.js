@@ -1,6 +1,7 @@
 import React from 'react'
 import createAll from './createAll'
 export { default as syncFirebase } from './syncFirebase'
+export { default as firebaseToProps } from './firebaseToProps'
 export { default as firebaseReducer } from './reducers/firebase'
 export { default as firebaseActions } from './actions/firebase'
 export { default as FirebaseLogin } from './components/FirebaseLogin'
