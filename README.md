@@ -40,12 +40,12 @@ const firebaseBindings = {
     path: "objectPathInFirebase"
   },
   // Arrays can be defined by setting the type as "Array"
-  // You can also define initialQuery, it will fetch the initial values
-  // with given reference and then listen for changes normally
+  // You can also define query, it will fetch the initial values
+  // with given reference params and also keep your binding live on any changes
   localArray: {
     type: "Array",
     path: "arrayPathInFirebase",
-    initialQuery: ref => ref.orderByChild("timestamp")
+    query: ref => ref.orderByChild("timestamp")
   },
   // If you want to react to state changes, you can define the path dynamically
   // by setting the path as function.
