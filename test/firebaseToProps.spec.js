@@ -29,7 +29,7 @@ import {
 const PORT = 46000
 
 describe('React', () => {
-  describe('connectFirebase', () => {
+  describe('firebaseToProps selector', () => {
     let server
     let unsubscribe
     let sequentialConnectionId = 0

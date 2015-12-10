@@ -103,7 +103,11 @@ function subscribe(localBinding, bindOptions, options) {
       dispatchInitialValueReceived(store, localBinding)
       dispatchArrayUpdated(store, localBinding)(snapshot)
 
-      const snapshotKeys = Object.keys(snapshot.val() || {}).sort()
+      const keys = Object.keys(snapshot.val() || {})
+      const sortingFn = isNaN(Number(keys[0]))
+        ? (a, b) => a > b
+        : (a, b) => a - b
+      const snapshotKeys = keys.sort(sortingFn)
       const lastIdInSnapshot = snapshotKeys[snapshotKeys.length - 1]
 
       // only listen child_added for new items, don't dispatch for initial items
