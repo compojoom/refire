@@ -88,60 +88,48 @@ function unsubscribeAll(refs, listeners) {
 }
 
 function subscribe(localBinding, bindOptions, options) {
-  const {path, type, initialQuery} = bindOptions
+  const {path, type, query} = bindOptions
   const {store, url, onCancel} = options
   const firebaseRef = new Firebase(`${url}${path}`)
-  let listeners = {}
+  const listeners = {}
+  const queryRef = query
+    ? query(firebaseRef)
+    : firebaseRef
 
   if (type === "Array") {
-    const initialRef = initialQuery
-      ? initialQuery(firebaseRef)
-      : firebaseRef
+    let initialValueReceived = false
 
-    // listen for value once to prevent multiple updates on initial items
-    listeners.value = initialRef.once('value', (snapshot) => {
+    // only listen child_added for new items after initial fetch is done
+    listeners.child_added = queryRef.on(
+      'child_added',
+      (snapshot, previousChildKey) => {
+        if (initialValueReceived) {
+          dispatchChildAdded(store, localBinding)(snapshot, previousChildKey)
+        }
+      },
+      onCancel
+    )
+
+    // add listeners for rest of 'child_*' events
+    listeners.child_changed = queryRef.on('child_changed', dispatchChildChanged(store, localBinding), onCancel)
+    listeners.child_moved = queryRef.on('child_moved', dispatchChildMoved(store, localBinding), onCancel)
+    listeners.child_removed = queryRef.on('child_removed', dispatchChildRemoved(store, localBinding), onCancel)
+
+    // listen for array value once to prevent multiple updates on initial items
+    listeners.value = queryRef.once('value', (snapshot) => {
       dispatchInitialValueReceived(store, localBinding)
       dispatchArrayUpdated(store, localBinding)(snapshot)
-
-      const keys = Object.keys(snapshot.val() || {})
-      const sortingFn = isNaN(Number(keys[0]))
-        ? (a, b) => a > b
-        : (a, b) => a - b
-      const snapshotKeys = keys.sort(sortingFn)
-      const lastIdInSnapshot = snapshotKeys[snapshotKeys.length - 1]
-
-      // only listen child_added for new items, don't dispatch for initial items
-      if (lastIdInSnapshot) {
-        listeners.child_added = firebaseRef
-        .orderByKey()
-        .startAt(lastIdInSnapshot)
-        .on(
-          'child_added',
-          (snapshot, previousChildKey) => {
-            if ( snapshot.key() !== lastIdInSnapshot ) {
-              dispatchChildAdded(store, localBinding)(snapshot, previousChildKey)
-            }
-          },
-          onCancel
-        )
-      }
-      // Add listeners for rest of 'child_*' events
-      listeners.child_changed = firebaseRef.on('child_changed', dispatchChildChanged(store, localBinding), onCancel)
-      listeners.child_moved = firebaseRef.on('child_moved', dispatchChildMoved(store, localBinding), onCancel)
-      listeners.child_removed = firebaseRef.on('child_removed', dispatchChildRemoved(store, localBinding), onCancel)
+      initialValueReceived = true
     }, onCancel)
   } else {
-    // Add listener for 'value' event
-    listeners = {
-      value: firebaseRef.on('value', (snapshot) => {
-        dispatchInitialValueReceived(store, localBinding)
-        dispatchObjectUpdated(store, localBinding, snapshot)
-      }, onCancel)
-    }
+    listeners.value = queryRef.on('value', (snapshot) => {
+      dispatchInitialValueReceived(store, localBinding)
+      dispatchObjectUpdated(store, localBinding, snapshot)
+    }, onCancel)
   }
 
   return {
-    ref: firebaseRef.ref(),
+    ref: queryRef.ref(),
     listeners: listeners
   }
 }
