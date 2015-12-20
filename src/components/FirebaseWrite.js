@@ -31,8 +31,8 @@ export default function(options = {}) {
         : path
 
       return {
-        processing: processing[firebasePath] || [],
-        errors: errors[firebasePath] || []
+        processing: processing[firebasePath],
+        errors: errors[firebasePath]
       }
     })
     class FirebaseWrite extends Component {
@@ -57,8 +57,8 @@ export default function(options = {}) {
       }
 
       render() {
-        const processing = !!this.props.processing.length
-        const errors = this.props.errors
+        const processing = this.props.processing && !!this.props.processing.length
+        const errors = this.props.errors || []
 
         const extraProps = {
           submit: this.submit.bind(this),
