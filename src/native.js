@@ -1,6 +1,5 @@
-import React from 'react-native'
-import createAll from './createAll'
 export { default as syncFirebase } from './syncFirebase'
+export { default as firebaseToProps } from './firebaseToProps'
 export { default as firebaseReducer } from './reducers/firebase'
-
-export const { FirebaseProvider } = createAll(React)
+export { default as firebaseActions } from './actions/firebase'
+export Firebase from 'firebase'

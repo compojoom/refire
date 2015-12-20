@@ -4,7 +4,7 @@
 
 Refire fetches selected [Firebase](https://www.firebase.com/) paths to your local [Redux](http://redux.js.org/) store and keeps your store in sync with server's state. You can also switch watched paths on state changes.
 
-Using provided [React](https://facebook.github.io/react/) components you also get automatic re-renders for your connected views on any change.
+Using provided [React](https://facebook.github.io/react/) higher-order components and [React Redux](https://github.com/rackt/react-redux) helper you also get automatic re-renders for your connected views on any change.
 
 All mutation still happens through [Firebase client's](https://www.firebase.com/docs/web/api/firebase) `references`.
 
@@ -14,13 +14,13 @@ syncFirebase needs bindings, a Redux store instance and a Firebase instance url.
 
 `bindings` bindings define the sync options per firebase path. See the comments below in usage example for more info.
 
-`store` is your redux store instance, remember to include `firebaseReducer` in your reducer function, see the usage example below.
+`store` is your Redux store instance, remember to include `firebaseReducer` in your Redux reducer function, see the usage example below.
 
-`url` is your firebase instance's url.
+`url` is your firebase instance's url (don't forget the trailing slash).
 
-`onAuth` (optional) gets called after Firebase's authentication state changes
+`onAuth` (optional) gets called after Firebase's authentication state changes.
 
-`onCancel` (optional) gets called whenever reading data fails, e.g. client does not have needed read permissions
+`onCancel` (optional) gets called whenever reading data fails, e.g. client doesn't have needed read permissions.
 
 ### Usage example
 ```javascript
@@ -78,29 +78,7 @@ const {unsubscribe} = syncFirebase({
 })
 ```
 
-## React components & functions
-
-### &lt;FirebaseProvider url={yourFirebaseUrl}&gt;
-
-Puts a Firebase instance reference to React's context, you can use `static contextTypes = { firebase: PropTypes.object }` & `this.context.firebase` in any component down the tree to get reference to Firebase instance.
-
-```javascript
-class Root extends Component {
-  render() {
-    return (
-      <FirebaseProvider url="https://your-firebase-instance.firebaseio.com/">
-        <Provider store={store}>
-          <Router history={createHistory()}>
-            <Route path="/" component={App}>
-              <IndexRoute component={Home} />
-            </Route>
-          </Router>
-        </Provider>
-      </FirebaseProvider>
-    )
-  }
-}
-```
+## React Redux connect helper
 
 ### firebaseToProps(localBindings, mapStateToProps)
 
@@ -142,6 +120,10 @@ class App extends Component {
 }
 ```
 
+## React components
+
+These higher-order components are not available for [React Native](https://facebook.github.io/react-native/) yet, they'll work when [this issue](https://github.com/facebook/react-native/issues/2985) gets resolved.
+
 ### FirebaseLogin
 
 TODO
@@ -150,11 +132,28 @@ TODO
 
 TODO
 
+### FirebaseRegistration
+
+TODO
+
+### FirebaseResetPassword
+
+TODO
+
+### FirebaseWrite
+
+TODO
+
+
 ## Data shape
 
 All returned values are wrapped in `{key, value}` shaped object for easier consumption.
-Primitives and Objects could be returned as they are, but then consumption of Array elements would be different, it's easier to have uniform way to access keys and values. I'm also not a big fan of `.key` and `.value` used in [ReactFire](https://github.com/firebase/reactfire).
 
+Primitives and Objects could be returned as they are, but then consumption of Array elements would be different, it's easier to have uniform way to access keys and values.
+
+I'm also not a big fan of `.key` and `.value` used in [ReactFire](https://github.com/firebase/reactfire).
+
+### Usage example using ES6 destructuring assignment
 ```javascript
 // Primitives
 // {key: "counter", value: 1}
