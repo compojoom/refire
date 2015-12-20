@@ -75,7 +75,7 @@ export default function(options = {}) {
           completed: completed
         }
 
-        return <WrappedComponent {...this.props} {...extraProps} />
+        return <WrappedComponent { ...this.props } { ...extraProps } />
       }
 
     }

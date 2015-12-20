@@ -9,7 +9,7 @@ const defaultValidator = input => {
 
 export default function(options = {}) {
 
-  const {validator = defaultValidator} = options
+  const { validator = defaultValidator } = options
 
   return WrappedComponent => {
 
@@ -60,7 +60,7 @@ export default function(options = {}) {
           completed: completed
         }
 
-        return <WrappedComponent {...this.props} {...extraProps} />
+        return <WrappedComponent { ...this.props } { ...extraProps } />
       }
 
     }

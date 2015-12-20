@@ -11,7 +11,7 @@ const validMethods = {
 
 export default function(options = {}) {
 
-  const {path, method} = options
+  const { path, method } = options
 
   if (typeof path !== "function" && typeof path !== "string") {
     throw new Error("options.path must be a function or string")
@@ -23,11 +23,11 @@ export default function(options = {}) {
 
   return WrappedComponent => {
 
-    @connect(state => {
+    @connect((state, ownProps) => {
       const processing = state.firebase.writes.processing
       const errors = state.firebase.writes.errors
       const firebasePath = typeof path === "function"
-        ? path(state)
+        ? path(state, ownProps)
         : path
 
       return {
@@ -44,8 +44,9 @@ export default function(options = {}) {
       }
 
       submit(value) {
+        const { dispatch, processing, errors, ...ownProps } = this.props
         this.props.dispatch(
-          write(method, path, value)
+          write({ method, path, value, ownProps })
         )
       }
 
@@ -66,7 +67,7 @@ export default function(options = {}) {
           processing: processing
         }
 
-        return <WrappedComponent {...this.props} {...extraProps} />
+        return <WrappedComponent { ...this.props } { ...extraProps } />
       }
 
     }
