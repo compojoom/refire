@@ -88,19 +88,15 @@ function unsubscribeAll(refs, listeners) {
 }
 
 function subscribe(localBinding, bindOptions, options) {
-  const {path, type, query} = bindOptions
-  const {store, url, onCancel} = options
-  const firebaseRef = new Firebase(`${url}${path}`)
+  const {type, query} = bindOptions
+  const {store, onCancel} = options
   const listeners = {}
-  const queryRef = query
-    ? query(firebaseRef)
-    : firebaseRef
 
   if (type === "Array") {
     let initialValueReceived = false
 
     // only listen child_added for new items after initial fetch is done
-    listeners.child_added = queryRef.on(
+    listeners.child_added = query.on(
       'child_added',
       (snapshot, previousChildKey) => {
         if (initialValueReceived) {
@@ -111,39 +107,97 @@ function subscribe(localBinding, bindOptions, options) {
     )
 
     // add listeners for rest of 'child_*' events
-    listeners.child_changed = queryRef.on('child_changed', dispatchChildChanged(store, localBinding), onCancel)
-    listeners.child_moved = queryRef.on('child_moved', dispatchChildMoved(store, localBinding), onCancel)
-    listeners.child_removed = queryRef.on('child_removed', dispatchChildRemoved(store, localBinding), onCancel)
+    listeners.child_changed = query.on('child_changed', dispatchChildChanged(store, localBinding), onCancel)
+    listeners.child_moved = query.on('child_moved', dispatchChildMoved(store, localBinding), onCancel)
+    listeners.child_removed = query.on('child_removed', dispatchChildRemoved(store, localBinding), onCancel)
 
     // listen for array value once to prevent multiple updates on initial items
-    listeners.value = queryRef.once('value', (snapshot) => {
+    listeners.value = query.once('value', (snapshot) => {
       dispatchInitialValueReceived(store, localBinding)
       dispatchArrayUpdated(store, localBinding)(snapshot)
       initialValueReceived = true
     }, onCancel)
   } else {
-    listeners.value = queryRef.on('value', (snapshot) => {
+    listeners.value = query.on('value', (snapshot) => {
       dispatchInitialValueReceived(store, localBinding)
       dispatchObjectUpdated(store, localBinding, snapshot)
     }, onCancel)
   }
 
   return {
-    ref: queryRef.ref(),
+    ref: query.ref(),
     listeners: listeners
   }
 }
 
-function createBindings(bindings, state) {
+function buildQueryState() {
+  let state = {}
+  return {
+    orderByChild(order) {
+      state = { ...state, orderByChild: order }
+      return this
+    },
+    orderByKey(order) {
+      state = { ...state, orderByKey: order }
+      return this
+    },
+    orderByValue(order) {
+      state = { ...state, orderByValue: order }
+      return this
+    },
+    orderByPriority(order) {
+      state = { ...state, orderByPriority: order }
+      return this
+    },
+    startAt(start) {
+      state = { ...state, startAt: start }
+      return this
+    },
+    endAt(end) {
+      state = { ...state, endAt: end }
+      return this
+    },
+    equalTo(equalTo) {
+      state = { ...state, equalTo: equalTo }
+      return this
+    },
+    limitToFirst(limit) {
+      state = { ...state, limitToFirst: limit }
+      return this
+    },
+    limitToLast(limit) {
+      state = { ...state, limitToLast: limit }
+      return this
+    },
+    getState() {
+      return state
+    }
+  }
+}
+
+function createBindings(bindings, state, url) {
   return Object.keys(bindings).reduce((result, localBinding) => {
+
     const path = typeof bindings[localBinding].path === "function"
       ? bindings[localBinding].path(state)
       : bindings[localBinding].path
 
     if (path) {
+      const queryState = typeof bindings[localBinding].query === "function"
+        ? bindings[localBinding].query(buildQueryState(), state).getState()
+        : bindings[localBinding].query
+
+      const firebaseRef = new Firebase(`${url}${path}`)
+
+      const query = bindings[localBinding].query
+        ? bindings[localBinding].query(firebaseRef, state)
+        : firebaseRef
+
       result[localBinding] = {
         ...bindings[localBinding],
-        path: path
+        path: path,
+        query: query,
+        queryState: queryState
       }
     }
     return result
@@ -174,10 +228,11 @@ export default function syncFirebase(options = {}) {
   const firebaseRefs = {}
   const firebaseListeners = {}
 
-  let currentBindings = createBindings(initialBindings, store.getState())
+  let currentBindings = createBindings(initialBindings, store.getState(), url)
   store.subscribe(() => {
     const previousBindings = {...currentBindings}
-    const nextBindings = createBindings(initialBindings, store.getState())
+    const nextBindings = createBindings(initialBindings, store.getState(), url)
+
     if ( !isEqual(currentBindings, nextBindings) ) {
       const subscribed = difference(Object.keys(nextBindings), Object.keys(currentBindings))
       const unsubscribed = difference(Object.keys(currentBindings), Object.keys(nextBindings))
@@ -201,7 +256,6 @@ export default function syncFirebase(options = {}) {
           currentBindings[localBinding],
           {
             store: store,
-            url: url,
             onCancel: onCancel
           }
         )
@@ -209,21 +263,23 @@ export default function syncFirebase(options = {}) {
         firebaseListeners[localBinding] = listeners
       })
 
-      // check if subscription paths have changed
+      // check if subscription paths or queries have changed
       remaining.forEach(localBinding => {
-        if (currentBindings[localBinding].path !== previousBindings[localBinding].path) {
+        if (
+          !isEqual(currentBindings[localBinding].path, previousBindings[localBinding].path) ||
+          !isEqual(currentBindings[localBinding].queryState, previousBindings[localBinding].queryState)
+        ) {
           // unsubscribe
           unsubscribe(localBinding, firebaseRefs[localBinding], firebaseListeners[localBinding])
           delete firebaseRefs[localBinding]
           delete firebaseListeners[localBinding]
 
-          // resubscribe with new path
+          // resubscribe with new path / query
           const {ref, listeners} = subscribe(
             localBinding,
             currentBindings[localBinding],
             {
               store: store,
-              url: url,
               onCancel: onCancel
             }
           )
@@ -259,7 +315,6 @@ export default function syncFirebase(options = {}) {
       currentBindings[localBinding],
       {
         store: store,
-        url: url,
         onCancel: onCancel
       }
     )
