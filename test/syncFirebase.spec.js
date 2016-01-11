@@ -21,8 +21,13 @@ const Firebase = proxyquire('firebase', {
   }
 })
 
-const syncFirebase = proxyquire('../src/syncFirebase', {
+const createBindings = proxyquire('../src/syncFirebase/createBindings', {
   'firebase': Firebase
+})
+
+const syncFirebase = proxyquire('../src/syncFirebase', {
+  'firebase': Firebase,
+  './syncFirebase/createBindings': createBindings
 })
 
 const PORT = 45000
