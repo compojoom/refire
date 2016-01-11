@@ -122,7 +122,9 @@ class App extends Component {
 
 ## React components
 
-These higher-order components are not available for [React Native](https://facebook.github.io/react-native/) yet, they'll work when [this issue](https://github.com/facebook/react-native/issues/2985) gets resolved.
+These higher-order components will help you with basic Firebase tasks.
+
+**FirebaseOAuth** does not work with [React Native](https://facebook.github.io/react-native/) yet as it requires browser redirects or popups. It might be possible to add React Native version later as WebView component is now available for both iOS & Android.
 
 ### FirebaseLogin
 
