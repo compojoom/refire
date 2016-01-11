@@ -26,6 +26,8 @@ export default function(options = {}) {
         this.state = {
           email: null
         }
+        this.submit = this.submit.bind(this)
+        this.updateEmail = this.updateEmail.bind(this)
       }
 
       submit(event) {
@@ -52,8 +54,8 @@ export default function(options = {}) {
 
         const extraProps = {
           email: this.state.email,
-          submit: this.submit.bind(this),
-          updateEmail: this.updateEmail.bind(this),
+          submit: this.submit,
+          updateEmail: this.updateEmail,
           validInput: validator(this.state.email),
           error: error,
           processing: processing,

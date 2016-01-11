@@ -43,6 +43,12 @@ export default function(options = {}) {
         errors: PropTypes.array
       }
 
+      constructor(props) {
+        super(props)
+        this.clearErrors = this.clearErrors.bind(this)
+        this.submit = this.submit.bind(this)
+      }
+
       submit(value) {
         const { dispatch, processing, errors, ...ownProps } = this.props
         this.props.dispatch(
@@ -61,8 +67,8 @@ export default function(options = {}) {
         const errors = this.props.errors || []
 
         const extraProps = {
-          submit: this.submit.bind(this),
-          clearErrors: this.clearErrors.bind(this),
+          submit: this.submit,
+          clearErrors: this.clearErrors,
           errors: errors,
           processing: processing
         }

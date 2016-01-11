@@ -29,6 +29,9 @@ export default function(options = {}) {
           email: null,
           password: null
         }
+        this.submit = this.submit.bind(this)
+        this.updateEmail = this.updateEmail.bind(this)
+        this.updatePassword = this.updatePassword.bind(this)
       }
 
       submit(event) {
@@ -64,9 +67,9 @@ export default function(options = {}) {
         const extraProps = {
           email: this.state.email,
           password: this.state.password,
-          submit: this.submit.bind(this),
-          updateEmail: this.updateEmail.bind(this),
-          updatePassword: this.updatePassword.bind(this),
+          submit: this.submit,
+          updateEmail: this.updateEmail,
+          updatePassword: this.updatePassword,
           validInput: validator(this.state),
           error: error,
           processing: processing,

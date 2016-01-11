@@ -16,6 +16,12 @@ const defaultSubmit = (dispatch, state) => {
   ).catch(() => {})
 }
 
+const update = function update(field) {
+  return (event) => {
+    this.updateField(event, field)
+  }
+}
+
 export default function(options = {}) {
 
   const {
@@ -39,6 +45,8 @@ export default function(options = {}) {
         this.state = fields.reduce((initialState, field) => {
           return {...initialState, [field]: null}
         }, {})
+        this.submit = this.submit.bind(this)
+        this.update = update.bind(this)
       }
 
       submit(event) {
@@ -46,7 +54,7 @@ export default function(options = {}) {
         submit(this.props.dispatch, this.state)
       }
 
-      update(event, field) {
+      updateField(event, field) {
         const { errors: { createUser: error } } = this.props._status
         if (error) {
           this.props.dispatch(clearRegistrationError())
@@ -63,12 +71,8 @@ export default function(options = {}) {
 
         const extraProps = {
           ...this.state,
-          submit: this.submit.bind(this),
-          update: (field) => {
-            return (event) => {
-              this.update(event, field)
-            }
-          },
+          submit: this.submit,
+          update: this.update,
           validInput: validator(this.state),
           error: error,
           processing: processing,

@@ -16,6 +16,11 @@ class FirebaseOAuth extends Component {
     firebase: PropTypes.object
   }
 
+  constructor(props) {
+    super(props)
+    this.authenticate = this.authenticate.bind(this)
+  }
+
   authenticate() {
     const flow = this.props.flow || "authWithOAuthPopup"
     this.props.dispatch(
@@ -26,7 +31,7 @@ class FirebaseOAuth extends Component {
   render() {
     return React.Children.only(
       React.cloneElement(this.props.children, {
-        onClick: this.authenticate.bind(this)
+        onClick: this.authenticate
       })
     )
   }
