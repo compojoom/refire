@@ -2,7 +2,9 @@
 
 > Quick prototyping with React, Firebase and Redux
 
-Refire fetches selected [Firebase](https://www.firebase.com/) paths to your local [Redux](http://redux.js.org/) store and keeps your store in sync with server's state. You can also switch watched paths on state changes.
+Refire fetches selected [Firebase](https://www.firebase.com/) paths to your local [Redux](http://redux.js.org/) store and keeps your store in sync with Firebase.
+
+You can also specify queries based on state and they will automatically get subscribed and unsubscribed when state changes.
 
 Using provided [React](https://facebook.github.io/react/) higher-order components and [React Redux](https://github.com/rackt/react-redux) helper you also get automatic re-renders for your connected views on any change.
 
