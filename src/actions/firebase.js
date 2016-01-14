@@ -97,13 +97,13 @@ export function updateConfig(options) {
   }
 }
 
-export function addArrayChild(path, snapshot, previousChildKey) {
+export function addArrayChild(path, key, value, previousChildKey) {
   return {
     type: ARRAY_CHILD_ADDED,
     payload: {
       path: path,
-      key: snapshot.key(),
-      value: createRecord(snapshot.key(), snapshot.val()),
+      key: key,
+      value: createRecord(key, value),
       previousChildKey: previousChildKey
     }
   }

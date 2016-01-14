@@ -9,9 +9,9 @@ import {
 } from '../actions/firebase'
 
 export function dispatchChildAdded(store, localBinding) {
-  return (snapshot, previousChildKey) => {
+  return (key, value, previousChildKey) => {
     return store.dispatch(
-      addArrayChild(localBinding, snapshot, previousChildKey)
+      addArrayChild(localBinding, key, value, previousChildKey)
     )
   }
 }

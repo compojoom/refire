@@ -42,14 +42,20 @@ export default function syncFirebase(options = {}) {
   const firebaseListeners = {}
 
   let currentBindings = createBindings(initialBindings, store.getState(), url)
+
   store.subscribe(() => {
     const previousBindings = {...currentBindings}
     const nextBindings = createBindings(initialBindings, store.getState(), url)
 
     if ( !isEqual(currentBindings, nextBindings) ) {
-      const subscribed = difference(Object.keys(nextBindings), Object.keys(currentBindings))
-      const unsubscribed = difference(Object.keys(currentBindings), Object.keys(nextBindings))
-      const remaining = intersection(Object.keys(currentBindings), Object.keys(nextBindings))
+
+      const nextBindingsKeys = Object.keys(nextBindings)
+      const currentBindingsKeys = Object.keys(currentBindings)
+
+      const subscribed = difference(nextBindingsKeys, currentBindingsKeys)
+      const unsubscribed = difference(currentBindingsKeys, nextBindingsKeys)
+      const remaining = intersection(currentBindingsKeys, nextBindingsKeys)
+
       currentBindings = nextBindings
 
       // unsubscribe removed bindings

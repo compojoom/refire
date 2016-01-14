@@ -62,6 +62,22 @@ const firebaseBindings = {
         return null
       }
     }
+  },
+  // You can use populate to easily get related items
+  // Your flattened data (here users/:uid/reviews) should be in format:
+  // {firstReviewId: true, secondReviewId: true, ...}
+  // as described in: https://www.firebase.com/docs/web/guide/structuring-data.html#section-join
+  // Using populate will return an array where placeholder values are replaced with real values from
+  // the path that gets returned in populate function.
+  userReviews: {
+    path: state => {
+      if (state.firebase.authenticatedUser) {
+        return `users/${state.firebase.authenticatedUser.uid}/reviews`
+      } else {
+        return null
+      }
+    }
+    populate: (key) => `reviews/${key}`
   }
 }
 
