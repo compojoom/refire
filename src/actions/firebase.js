@@ -109,13 +109,13 @@ export function addArrayChild(path, key, value, previousChildKey) {
   }
 }
 
-export function changeArrayChild(path, snapshot) {
+export function changeArrayChild(path, key, value) {
   return {
     type: ARRAY_CHILD_CHANGED,
     payload: {
       path: path,
-      key: snapshot.key(),
-      value: createRecord(snapshot.key(), snapshot.val())
+      key: key,
+      value: createRecord(key, value)
     }
   }
 }

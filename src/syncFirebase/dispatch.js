@@ -17,9 +17,9 @@ export function dispatchChildAdded(store, localBinding) {
 }
 
 export function dispatchChildChanged(store, localBinding) {
-  return (snapshot) => {
+  return (key, value) => {
     return store.dispatch(
-      changeArrayChild(localBinding, snapshot)
+      changeArrayChild(localBinding, key, value)
     )
   }
 }
