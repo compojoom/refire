@@ -19,15 +19,47 @@ export default function subscribe(localBinding, bindOptions, options) {
     // TODO: should watch for populated value changes with .on('value'),
     // but better implement it elsewhere as subscribe returns only single ref?
 
+    const populateChild = (key) => {
+      return new Promise(resolve => {
+        query.root().child(populate(key)).once('value', function(snapshot) {
+          return resolve([key, snapshot.val()])
+        }, function() {
+          return resolve([key, null])
+        })
+      })
+    }
+
     const onChildAdded = (snapshot, previousChildKey) => {
       if (initialValueReceived) {
         if (populate) {
           query.root().child(populate(snapshot.key())).once('value', function(populatedSnapshot) {
-            dispatchChildAdded(store, localBinding)(snapshot.key(), populatedSnapshot.value(), previousChildKey)
+            dispatchChildAdded(store, localBinding)(snapshot.key(), populatedSnapshot.val(), previousChildKey)
           })
         } else {
-          dispatchChildAdded(store, localBinding)(snapshot.key(), snapshot.value(), previousChildKey)
+          dispatchChildAdded(store, localBinding)(snapshot.key(), snapshot.val(), previousChildKey)
         }
+      }
+    }
+
+    const onceValue = (snapshot) => {
+      if (populate) {
+        Promise.all(
+          Object.keys(snapshot.val()).map(populateChild)
+        ).then(resolved => {
+          return resolved.reduce((result, arr) => {
+            const [key, value] = arr
+            result[key] = value
+            return result
+          }, {})
+        }).then(populated => {
+          dispatchArrayUpdated(store, localBinding)(snapshot.key(), populated)
+          dispatchInitialValueReceived(store, localBinding)
+          initialValueReceived = true
+        })
+      } else {
+        dispatchArrayUpdated(store, localBinding)(snapshot.key(), snapshot.val())
+        dispatchInitialValueReceived(store, localBinding)
+        initialValueReceived = true
       }
     }
 
@@ -40,16 +72,11 @@ export default function subscribe(localBinding, bindOptions, options) {
     listeners.child_removed = query.on('child_removed', dispatchChildRemoved(store, localBinding), onCancel)
 
     // listen for array value once to prevent multiple updates on initial items
-    listeners.value = query.once('value', (snapshot) => {
-      dispatchInitialValueReceived(store, localBinding)
-      dispatchArrayUpdated(store, localBinding)(snapshot)
-      // TODO: if populate, go through array and dispatchArrayUpdated with values once all child have resolved with value
-      initialValueReceived = true
-    }, onCancel)
+    query.once('value', onceValue, onCancel)
   } else {
     listeners.value = query.on('value', (snapshot) => {
-      dispatchInitialValueReceived(store, localBinding)
       dispatchObjectUpdated(store, localBinding, snapshot)
+      dispatchInitialValueReceived(store, localBinding)
     }, onCancel)
   }
 

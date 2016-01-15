@@ -141,11 +141,10 @@ export function removeArrayChild(path, snapshot) {
   }
 }
 
-export function updateArray(path, snapshot) {
-  const snapshotValue = snapshot.val()
-  const recordsArray = Object.keys(snapshotValue || []).reduce((arr, key) => {
+export function updateArray(path, key, value) {
+  const recordsArray = Object.keys(value || []).reduce((arr, recordKey) => {
     arr.push(
-      createRecord(key, snapshotValue[key])
+      createRecord(recordKey, value[recordKey])
     )
     return arr
   }, [])
@@ -154,7 +153,7 @@ export function updateArray(path, snapshot) {
     type: ARRAY_UPDATED,
     payload: {
       path: path,
-      value: createRecord(snapshot.key(), recordsArray)
+      value: createRecord(key, recordsArray)
     }
   }
 }

@@ -19,11 +19,16 @@ export default function createBindings(bindings, state, url) {
         ? bindings[localBinding].query(firebaseRef, state)
         : firebaseRef
 
+      const type = bindings[localBinding].populate
+        ? "Array"
+        : bindings[localBinding].type
+
       result[localBinding] = {
         ...bindings[localBinding],
         path: path,
         query: query,
-        queryState: queryState
+        queryState: queryState,
+        type: type
       }
     }
     return result

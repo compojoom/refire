@@ -41,9 +41,9 @@ export function dispatchChildRemoved(store, localBinding) {
 }
 
 export function dispatchArrayUpdated(store, localBinding) {
-  return (snapshot) => {
+  return (key, value) => {
     return store.dispatch(
-      updateArray(localBinding, snapshot)
+      updateArray(localBinding, key, value)
     )
   }
 }
