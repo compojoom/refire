@@ -52,7 +52,7 @@ export default function subscribe(localBinding, bindOptions, options) {
       if (populate) {
         const populateRefs = {}
         Promise.all(
-          Object.keys(snapshot.val()).map(populateChild)
+          Object.keys(snapshot.val() || {}).map(populateChild)
         ).then(resolved => {
           const result = {}
           resolved.forEach(arr => {
