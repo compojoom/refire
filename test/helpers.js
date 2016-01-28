@@ -4,6 +4,7 @@ import thunk from 'redux-thunk'
 import proxyquire from 'proxyquire'
 import originalWebsocket from 'faye-websocket'
 import firebaseReducer from '../src/reducers/firebase'
+import createReducer from '../src/helpers/createReducer'
 
 const Firebase = proxyquire('firebase', {
   'faye-websocket': {
@@ -24,14 +25,6 @@ const syncFirebase = proxyquire('../src/syncFirebase', {
 })
 
 const INCREMENT_COUNTER = "INCREMENT_COUNTER"
-
-function createReducer(initialState, handlers) {
-  return (state = initialState, action) => {
-    return handlers[action.type]
-      ? handlers[action.type](state, action)
-      : state
-  }
-}
 
 export function initServer(data, port) {
   return new FirebaseServer(port, 'localhost:' + port, data)

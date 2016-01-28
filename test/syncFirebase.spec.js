@@ -520,6 +520,56 @@ describe('syncFirebase', () => {
       })
     })
 
+    it('unsubscribe previous binding and subscribe again with new query if query is changed', async (done) => {
+      server = initServer({
+        users: {
+          1: {
+            name: "First user", email: "first@test.dev"
+          },
+          2: {
+            name: "Second user", email: "second@test.dev"
+          }
+        }
+      }, PORT)
+
+      const bindings = {
+        users: {
+          type: "Array",
+          path: "users",
+          query: (ref, state) => ref.limitToFirst(state.counter)
+        }
+      }
+
+      const store = initStore(bindings, {
+        counter: initCounterReducer()
+      })
+
+      const url = newServerUrl()
+      const sync = syncFirebase({
+        store: store,
+        bindings: bindings,
+        url: url
+      })
+      await sync.initialized
+
+      expect(Object.keys(sync.refs).length).toEqual(1)
+      expect(Object.keys(sync.listeners).length).toEqual(1)
+      expect(store.getState().firebase.stores.users.value.length).toEqual(1)
+
+      const usersListener = sync.listeners.users
+
+      store.dispatch(incrementCounter())
+
+      const unsubscribe = store.subscribe(() => {
+        expect(Object.keys(sync.refs).length).toEqual(1)
+        expect(Object.keys(sync.listeners).length).toEqual(1)
+        expect(store.getState().firebase.stores.users.value.length).toEqual(2)
+        expect(usersListener).toNotEqual(sync.listeners.users)
+        unsubscribe()
+        done()
+      })
+    })
+
   })
 
 })
