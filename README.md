@@ -2,11 +2,11 @@
 
 > Quick prototyping with React, Firebase and Redux
 
-Refire fetches selected [Firebase](https://www.firebase.com/) paths to your local [Redux](http://redux.js.org/) store and keeps your store in sync with Firebase.
+Refire keeps your local [Redux](http://redux.js.org/) store in sync with selected [Firebase](https://www.firebase.com/) paths. You can bind Firebase paths as Strings, Objects or Arrays.
 
-You can also specify queries based on state and they will automatically get subscribed and unsubscribed when state changes.
+You can also specify queries based on Redux state (e.g. currently logged in user or route parameter) and Refire will automatically subscribe and unsubscribe your bindings when state changes.
 
-Using provided [React](https://facebook.github.io/react/) higher-order components and [React Redux](https://github.com/rackt/react-redux) helper you also get automatic re-renders for your connected views on any change.
+Using provided [React](https://facebook.github.io/react/) higher order components and [React Redux](https://github.com/rackt/react-redux) helper you also get automatic re-renders for your connected views on any change.
 
 All mutation still happens through [Firebase client's](https://www.firebase.com/docs/web/api/firebase) `references`.
 
@@ -25,7 +25,7 @@ syncFirebase needs bindings, a Redux store instance and a Firebase instance url.
 `onCancel` (optional) gets called whenever reading data fails, e.g. client doesn't have needed read permissions.
 
 ### Usage example
-```javascript
+```js
 import { applyMiddleware, createStore, compose, combineReducers } from 'redux'
 import thunk from 'redux-thunk'
 import { firebaseReducer, syncFirebase } from 'redux-firebase-sync'
@@ -102,11 +102,11 @@ const {unsubscribe} = syncFirebase({
 
 Creates selector function for [react-redux's connect](https://github.com/rackt/react-redux/blob/master/docs/api.md#connectmapstatetoprops-mapdispatchtoprops-mergeprops-options).
 
-firebaseToProps will return the content of your given local bindings (array) as props.
+`firebaseToProps` will return the content of your given bindings as props.
 
 If you also need to return something else from Redux, pass your normal mapStateToProps as second parameter, firebaseToProps will merge the results.
 
-```javascript
+```js
 @connect(
   firebaseToProps(["counter"])
 )
@@ -119,7 +119,7 @@ class Counter extends Component {
 
 There's also special `_status` binding available, it provides an object with latest `authenticatedUser`, `connected`, `errors` and `initialFetchDone` values.
 
-```javascript
+```js
 @connect(firebaseToProps(["_status"]))
 class App extends Component {
 
@@ -140,30 +140,21 @@ class App extends Component {
 
 ## React components
 
-These higher-order components will help you with basic Firebase tasks.
+These higher order components will help you with basic Firebase tasks.
 
 **FirebaseOAuth** does not work with [React Native](https://facebook.github.io/react-native/) yet as it requires browser redirects or popups. It might be possible to add React Native version later as WebView component is now available for both iOS & Android.
 
-### FirebaseLogin
+### Documentation
 
-TODO
+[FirebaseLogin](docs/FirebaseLogin.md)
 
-### FirebaseOAuth
+[FirebaseOAuth](docs/FirebaseOAuth.md)
 
-TODO
+[FirebaseRegistration](docs/FirebaseRegistration.md)
 
-### FirebaseRegistration
+[FirebaseResetPassword](docs/FirebaseResetPassword.md)
 
-TODO
-
-### FirebaseResetPassword
-
-TODO
-
-### FirebaseWrite
-
-TODO
-
+[FirebaseWrite](docs/FirebaseWrite.md)
 
 ## Data shape
 
@@ -174,7 +165,7 @@ Primitives and Objects could be returned as they are, but then consumption of Ar
 I'm also not a big fan of `.key` and `.value` used in [ReactFire](https://github.com/firebase/reactfire).
 
 ### Usage example using ES6 destructuring assignment
-```javascript
+```js
 // Primitives
 // {key: "counter", value: 1}
 const {value: counter} = this.props.counter
