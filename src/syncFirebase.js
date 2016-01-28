@@ -40,23 +40,35 @@ export default function syncFirebase(options = {}) {
   const rootRef = new Firebase(url)
   const firebaseRefs = {}
   const firebaseListeners = {}
+  const firebasePopulated = {}
 
   let currentBindings = createBindings(initialBindings, store.getState(), url)
+
   store.subscribe(() => {
     const previousBindings = {...currentBindings}
     const nextBindings = createBindings(initialBindings, store.getState(), url)
 
     if ( !isEqual(currentBindings, nextBindings) ) {
-      const subscribed = difference(Object.keys(nextBindings), Object.keys(currentBindings))
-      const unsubscribed = difference(Object.keys(currentBindings), Object.keys(nextBindings))
-      const remaining = intersection(Object.keys(currentBindings), Object.keys(nextBindings))
+
+      const nextBindingsKeys = Object.keys(nextBindings)
+      const currentBindingsKeys = Object.keys(currentBindings)
+
+      const subscribed = difference(nextBindingsKeys, currentBindingsKeys)
+      const unsubscribed = difference(currentBindingsKeys, nextBindingsKeys)
+      const remaining = intersection(currentBindingsKeys, nextBindingsKeys)
+
       currentBindings = nextBindings
 
       // unsubscribe removed bindings
       unsubscribed.forEach(localBinding => {
-        unsubscribe(firebaseRefs[localBinding], firebaseListeners[localBinding])
+        unsubscribe(
+          firebaseRefs[localBinding],
+          firebaseListeners[localBinding],
+          firebasePopulated[localBinding]
+        )
         delete firebaseRefs[localBinding]
         delete firebaseListeners[localBinding]
+        delete firebasePopulated[localBinding]
 
         // reset store value to null
         store.dispatch(replaceValue(localBinding, null))
@@ -64,7 +76,7 @@ export default function syncFirebase(options = {}) {
 
       // subscribe new bindings
       subscribed.forEach(localBinding => {
-        const {ref, listeners} = subscribe(
+        const {ref, listeners, populated} = subscribe(
           localBinding,
           currentBindings[localBinding],
           {
@@ -74,6 +86,7 @@ export default function syncFirebase(options = {}) {
         )
         firebaseRefs[localBinding] = ref
         firebaseListeners[localBinding] = listeners
+        firebasePopulated[localBinding] = populated
       })
 
       // check if subscription paths or queries have changed
@@ -83,12 +96,17 @@ export default function syncFirebase(options = {}) {
           !isEqual(currentBindings[localBinding].queryState, previousBindings[localBinding].queryState)
         ) {
           // unsubscribe
-          unsubscribe(firebaseRefs[localBinding], firebaseListeners[localBinding])
+          unsubscribe(
+            firebaseRefs[localBinding],
+            firebaseListeners[localBinding],
+            firebasePopulated[localBinding]
+          )
           delete firebaseRefs[localBinding]
           delete firebaseListeners[localBinding]
+          delete firebasePopulated[localBinding]
 
           // resubscribe with new path / query
-          const {ref, listeners} = subscribe(
+          const {ref, listeners, populated} = subscribe(
             localBinding,
             currentBindings[localBinding],
             {
@@ -98,6 +116,7 @@ export default function syncFirebase(options = {}) {
           )
           firebaseRefs[localBinding] = ref
           firebaseListeners[localBinding] = listeners
+          firebasePopulated[localBinding] = populated
         }
       })
 
@@ -124,7 +143,7 @@ export default function syncFirebase(options = {}) {
 
   // initial subscriptions
   Object.keys(currentBindings).forEach(localBinding => {
-    const {ref, listeners} = subscribe(
+    const {ref, listeners, populated} = subscribe(
       localBinding,
       currentBindings[localBinding],
       {
@@ -134,6 +153,7 @@ export default function syncFirebase(options = {}) {
     )
     firebaseRefs[localBinding] = ref
     firebaseListeners[localBinding] = listeners
+    firebasePopulated[localBinding] = populated
   })
 
   // immediately mark initial fetch completed if we aren't initially subscribed to any stores
@@ -152,7 +172,7 @@ export default function syncFirebase(options = {}) {
   })
 
   return Object.defineProperties({
-    unsubscribe: () => unsubscribeAll(firebaseRefs, firebaseListeners)
+    unsubscribe: () => unsubscribeAll(firebaseRefs, firebaseListeners, firebasePopulated)
   }, {
     refs: {
       enumerable: false,
@@ -163,6 +183,11 @@ export default function syncFirebase(options = {}) {
       enumerable: false,
       writable: false,
       value: firebaseListeners
+    },
+    populated: {
+      enumerable: false,
+      writable: false,
+      value: firebasePopulated
     },
     initialized: {
       enumerable: false,

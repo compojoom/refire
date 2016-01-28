@@ -9,17 +9,17 @@ import {
 } from '../actions/firebase'
 
 export function dispatchChildAdded(store, localBinding) {
-  return (snapshot, previousChildKey) => {
+  return (key, value, previousChildKey) => {
     return store.dispatch(
-      addArrayChild(localBinding, snapshot, previousChildKey)
+      addArrayChild(localBinding, key, value, previousChildKey)
     )
   }
 }
 
 export function dispatchChildChanged(store, localBinding) {
-  return (snapshot) => {
+  return (key, value) => {
     return store.dispatch(
-      changeArrayChild(localBinding, snapshot)
+      changeArrayChild(localBinding, key, value)
     )
   }
 }
@@ -41,9 +41,9 @@ export function dispatchChildRemoved(store, localBinding) {
 }
 
 export function dispatchArrayUpdated(store, localBinding) {
-  return (snapshot) => {
+  return (key, value) => {
     return store.dispatch(
-      updateArray(localBinding, snapshot)
+      updateArray(localBinding, key, value)
     )
   }
 }

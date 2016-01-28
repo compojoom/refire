@@ -109,8 +109,22 @@ describe('syncFirebase', () => {
 			posts: {
         "first": {id: 1, title: "Hello", body: "World"}
       },
-      user: {name: "Test user", email: "test@test.dev"},
-      counter: 5
+      user: {name: "Test user", email: "test@test.dev", reviews: {0: true, 2: true}},
+      counter: 5,
+      reviews: {
+        0: {
+          text: "Very good",
+          rating: 5
+        },
+        1: {
+          text: "Quite ok",
+          rating: 4
+        },
+        2: {
+          text: "Mediocre",
+          rating: 3
+        }
+      }
 		}, PORT)
 
     const bindings = {
@@ -124,6 +138,10 @@ describe('syncFirebase', () => {
       },
       counter: {
         path: "counter"
+      },
+      reviews: {
+        path: "user/reviews",
+        populate: (key) => `reviews/${key}`
       }
     }
 
@@ -135,7 +153,7 @@ describe('syncFirebase', () => {
     })
     expect(
       Object.keys(store.getState().firebase.stores).length
-    ).toBe(3)
+    ).toBe(4)
 
     expect(store.getState().firebase.connected).toBe(false)
     expect(store.getState().firebase.initialFetchDone).toBe(false)
@@ -156,27 +174,130 @@ describe('syncFirebase', () => {
     })
     expect(store.getState().firebase.stores.user).toEqual({
       key: "user",
-      value: {name: "Test user", email: "test@test.dev"}
+      value: {name: "Test user", email: "test@test.dev", reviews: {0: true, 2: true}}
     })
     expect(store.getState().firebase.stores.counter).toEqual({
       key: "counter",
       value: 5
     })
+    expect(store.getState().firebase.stores.reviews).toEqual({
+      key: "reviews",
+      value: [
+        {
+          key: 0,
+          value: {
+            rating: 5,
+            text: "Very good"
+          }
+        },
+        {
+          key: 2,
+          value: {
+            rating: 3,
+            text: "Mediocre"
+          }
+        }
+      ]
+    })
   })
 
   describe('should update the store state after firebase mutation', () => {
 
-    // TODO: pending for .push support in firebase-server, changes are not broadcasted to client
-    it('array item added')
+    it('array item added', async () => {
+      server = initServer({
+        posts: {first: {title: "First"}, second: {title: "Second"}}
+      }, PORT)
 
-    // TODO: pending for proper .child().update support in firebase-server, changes are not broadcasted to client
-    it('array item changed')
+      const bindings = {
+        posts: {
+          type: "Array",
+          path: "posts"
+        }
+      }
 
-    // TODO: pending for proper .child().update support in firebase-server, changes are not broadcasted to client
-    it('array item moved')
+      const store = initStore(bindings)
+      const url = newServerUrl()
+      const sync = syncFirebase({
+        store: store,
+        bindings: bindings,
+        url: url
+      })
+      await sync.initialized
+      expect(store.getState().firebase.stores.posts.value).toEqual([
+        { key: 'first', value: { title: 'First' } },
+        { key: 'second', value: { title: 'Second' } }
+      ])
 
-    // TODO: pending for proper .child().update support in firebase-server, changes are not broadcasted to client
-    it('array item removed')
+      const client = new Firebase(`${url}posts`)
+      client.push({
+        title: "Third"
+      })
+      expect(store.getState().firebase.stores.posts.value[0].value).toEqual({title: "Third"})
+    })
+
+    it('array item changed', async () => {
+      server = initServer({
+        posts: {first: {title: "First"}, second: {title: "Second"}}
+      }, PORT)
+
+      const bindings = {
+        posts: {
+          type: "Array",
+          path: "posts"
+        }
+      }
+
+      const store = initStore(bindings)
+      const url = newServerUrl()
+      const sync = syncFirebase({
+        store: store,
+        bindings: bindings,
+        url: url
+      })
+      await sync.initialized
+      expect(store.getState().firebase.stores.posts.value).toEqual([
+        { key: 'first', value: { title: 'First' } },
+        { key: 'second', value: { title: 'Second' } }
+      ])
+
+      const client = new Firebase(`${url}posts/first`)
+      client.update({
+        title: "Updated title"
+      })
+      expect(store.getState().firebase.stores.posts.value[0].value).toEqual({title: "Updated title"})
+    })
+
+    it('array item removed', async () => {
+      server = initServer({
+        posts: {0: {title: "First"}, 1: {title: "Second"}}
+      }, PORT)
+
+      const bindings = {
+        posts: {
+          type: "Array",
+          path: "posts"
+        }
+      }
+
+      const store = initStore(bindings)
+      const url = newServerUrl()
+      const sync = syncFirebase({
+        store: store,
+        bindings: bindings,
+        url: url
+      })
+      await sync.initialized
+      expect(store.getState().firebase.stores.posts.value).toEqual([
+        { key: 0, value: { title: 'First' } },
+        { key: 1, value: { title: 'Second' } }
+      ])
+
+      const client = new Firebase(`${url}posts/0`)
+      client.remove()
+      expect(store.getState().firebase.stores.posts.value).toEqual([
+        { key: 1, value: { title: 'Second' } }
+      ])
+    })
 
     it('object changed', async () => {
       server = initServer({

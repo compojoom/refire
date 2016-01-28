@@ -97,25 +97,25 @@ export function updateConfig(options) {
   }
 }
 
-export function addArrayChild(path, snapshot, previousChildKey) {
+export function addArrayChild(path, key, value, previousChildKey) {
   return {
     type: ARRAY_CHILD_ADDED,
     payload: {
       path: path,
-      key: snapshot.key(),
-      value: createRecord(snapshot.key(), snapshot.val()),
+      key: key,
+      value: createRecord(key, value),
       previousChildKey: previousChildKey
     }
   }
 }
 
-export function changeArrayChild(path, snapshot) {
+export function changeArrayChild(path, key, value) {
   return {
     type: ARRAY_CHILD_CHANGED,
     payload: {
       path: path,
-      key: snapshot.key(),
-      value: createRecord(snapshot.key(), snapshot.val())
+      key: key,
+      value: createRecord(key, value)
     }
   }
 }
@@ -141,11 +141,10 @@ export function removeArrayChild(path, snapshot) {
   }
 }
 
-export function updateArray(path, snapshot) {
-  const snapshotValue = snapshot.val()
-  const recordsArray = Object.keys(snapshotValue || []).reduce((arr, key) => {
+export function updateArray(path, key, value) {
+  const recordsArray = Object.keys(value || []).reduce((arr, recordKey) => {
     arr.push(
-      createRecord(key, snapshotValue[key])
+      createRecord(recordKey, value[recordKey])
     )
     return arr
   }, [])
@@ -154,7 +153,7 @@ export function updateArray(path, snapshot) {
     type: ARRAY_UPDATED,
     payload: {
       path: path,
-      value: createRecord(snapshot.key(), recordsArray)
+      value: createRecord(key, recordsArray)
     }
   }
 }
@@ -200,10 +199,7 @@ export function receiveInitialValue(path) {
       const {firebase: {initialValuesReceived, stores}} = getState()
 
       if (
-        !difference(
-          uniq(initialValuesReceived),
-          Object.keys(stores)
-        ).length
+        uniq(initialValuesReceived).length === Object.keys(stores).length
       ) {
         dispatch(completeInitialFetch())
       }
