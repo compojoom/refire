@@ -47,7 +47,7 @@ const firebaseBindings = {
   localArray: {
     type: "Array",
     path: "arrayPathInFirebase",
-    query: ref => ref.orderByChild("timestamp")
+    query: (ref, state) => ref.orderByChild(state.routing.query.orderBy)
   },
   // If you want to react to state changes, you can define the path dynamically
   // by setting the path as function.
