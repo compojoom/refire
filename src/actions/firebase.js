@@ -199,10 +199,7 @@ export function receiveInitialValue(path) {
       const {firebase: {initialValuesReceived, stores}} = getState()
 
       if (
-        !difference(
-          uniq(initialValuesReceived),
-          Object.keys(stores)
-        ).length
+        uniq(initialValuesReceived).length === Object.keys(stores).length
       ) {
         dispatch(completeInitialFetch())
       }
