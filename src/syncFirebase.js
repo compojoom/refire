@@ -5,6 +5,7 @@ import intersection from 'lodash/array/intersection'
 
 import {
   replaceValue,
+  receiveInitialValue,
   completeInitialFetch,
   connect,
   authenticateUser,
@@ -160,6 +161,11 @@ export default function syncFirebase(options = {}) {
   if (!Object.keys(currentBindings).length) {
     store.dispatch(completeInitialFetch())
   }
+
+  // mark initial values received for stores that don't have initial value
+  difference(Object.keys(initialBindings), Object.keys(currentBindings)).forEach(localBinding => {
+    store.dispatch(receiveInitialValue(localBinding))
+  })
 
   const initialized = new Promise((resolve) => {
     const unsubscribe = store.subscribe(() => {
