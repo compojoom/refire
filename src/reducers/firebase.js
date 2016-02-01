@@ -1,5 +1,6 @@
 import findIndex from 'lodash/array/findIndex'
 import without from 'lodash/array/without'
+import u from 'updeep'
 import createReducer from '../helpers/createReducer'
 import {
   ARRAY_CHILD_ADDED,
@@ -30,38 +31,22 @@ function arrayChildAdded(state, action) {
   const {payload: {path, value, previousChildKey}} = action
   const newArray = [...state.stores[path].value]
   const insertionIndex = previousChildKey === null
-    ? 0
+    ? newArray.length
     : indexForKey(newArray, previousChildKey) + 1
 
   newArray.splice(insertionIndex, 0, value)
 
-  return {
-    ...state,
-    stores: {
-      ...state.stores,
-      [path]: {
-        ...state.stores[path],
-        value: newArray
-      }
-    }
-  }
+  return u({ stores: { [path]: { value: newArray } } }, state)
 }
 
 function arrayChildChanged(state, action) {
   const {payload: {path, key, value}} = action
-  const newArray = [...state.stores[path].value]
-  newArray[indexForKey(newArray, key)] = value
 
-  return {
-    ...state,
-    stores: {
-      ...state.stores,
-      [path]: {
-        ...state.stores[path],
-        value: newArray
-      }
-    }
-  }
+  return u.updateIn(
+    `stores.${path}.value.${indexForKey(state.stores[path].value, key)}`,
+    value,
+    state
+  )
 }
 
 function arrayChildMoved(state, action) {
@@ -76,16 +61,7 @@ function arrayChildMoved(state, action) {
 
   newArray.splice(insertionIndex, 0, record)
 
-  return {
-    ...state,
-    stores: {
-      ...state.stores,
-      [path]: {
-        ...state.stores[path],
-        value: newArray
-      }
-    }
-  }
+  return u({ stores: { [path]: { value: newArray } } }, state)
 }
 
 function arrayChildRemoved(state, action) {
@@ -93,104 +69,53 @@ function arrayChildRemoved(state, action) {
   const newArray = [...state.stores[path].value]
   newArray.splice(indexForKey(newArray, key), 1)
 
-  return {
-    ...state,
-    stores: {
-      ...state.stores,
-      [path]: {
-        ...state.stores[path],
-        value: newArray
-      }
-    }
-  }
+  return u({ stores: { [path]: { value: newArray } } }, state)
 }
 
 function valueReplaced(state, action) {
   const {payload: {path, value}} = action
-  return {
-    ...state,
-    stores: {
-      ...state.stores,
-      [path]: value
-    }
-  }
+  return u({ stores: { [path]: value } }, state)
 }
 
 function initialValueReceived(state, action) {
   const {payload: {path}} = action
-  return {
-    ...state,
-    initialValuesReceived: [...state.initialValuesReceived, path]
-  }
+  return u({ initialValuesReceived: (values) => [...values, path] }, state)
 }
 
 function initialFetchDone(state) {
-  return {
-    ...state,
-    initialFetchDone: true
-  }
+  return u({ initialFetchDone: true }, state)
 }
 
 function connected(state) {
-  return {
-    ...state,
-    connected: true
-  }
+  return u({ connected: true }, state)
 }
 
 function userAuthenticated(state, action) {
-  return {
-    ...state,
-    authenticatedUser: action.payload
-  }
+  return u({ authenticatedUser: action.payload }, state)
 }
 
 function userUnauthenticated(state) {
-  return {
-    ...state,
-    authenticatedUser: null
-  }
+  return u({ authenticatedUser: null }, state)
 }
 
 function configUpdated(state, action) {
   const {payload: {url}} = action
-  return {
-    ...state,
-    url: url
-  }
+  return u({ url: url }, state)
 }
 
 function updateError(state, action) {
   const {payload: {field, error}} = action
-  return {
-    ...state,
-    errors: {
-      ...state.errors,
-      [field]: error
-    }
-  }
+  return u({ errors: { [field]: error } }, state)
 }
 
 function updateProcessing(state, action) {
   const {payload: {field, value}} = action
-  return {
-    ...state,
-    processing: {
-      ...state.processing,
-      [field]: value
-    }
-  }
+  return u({ processing: { [field]: value } }, state)
 }
 
 function updateCompleted(state, action) {
   const {payload: {field, value}} = action
-  return {
-    ...state,
-    completed: {
-      ...state.completed,
-      [field]: value
-    }
-  }
+  return u({ completed: { [field]: value } }, state)
 }
 
 function updateWriteProcessing(state, action) {
@@ -200,16 +125,7 @@ function updateWriteProcessing(state, action) {
     ? [...currentValue, id]
     : without(currentValue, id)
 
-  return {
-    ...state,
-    writes: {
-      ...state.writes,
-      processing: {
-        ...state.writes.processing,
-        [path]: newValue
-      }
-    }
-  }
+  return u({ writes: { processing: { [path]: newValue } } }, state)
 }
 
 function updateWriteErrors(state, action) {
@@ -219,16 +135,7 @@ function updateWriteErrors(state, action) {
     ? [...currentValue, error]
     : []
 
-  return {
-    ...state,
-    writes: {
-      ...state.writes,
-      errors: {
-        ...state.writes.errors,
-        [path]: newValue
-      }
-    }
-  }
+  return u({ writes: { errors: { [path]: newValue } } }, state)
 }
 
 export default function(bindings) {

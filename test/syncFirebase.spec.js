@@ -205,7 +205,7 @@ describe('syncFirebase', () => {
 
     it('array item added', async () => {
       server = initServer({
-        posts: {first: {title: "First"}, second: {title: "Second"}}
+        posts: {0: {title: "First"}, 1: {title: "Second"}}
       }, PORT)
 
       const bindings = {
@@ -224,15 +224,17 @@ describe('syncFirebase', () => {
       })
       await sync.initialized
       expect(store.getState().firebase.stores.posts.value).toEqual([
-        { key: 'first', value: { title: 'First' } },
-        { key: 'second', value: { title: 'Second' } }
+        { key: 0, value: { title: 'First' } },
+        { key: 1, value: { title: 'Second' } }
       ])
 
       const client = new Firebase(`${url}posts`)
       client.push({
         title: "Third"
       })
-      expect(store.getState().firebase.stores.posts.value[0].value).toEqual({title: "Third"})
+      expect(store.getState().firebase.stores.posts.value[0].value).toEqual({title: "First"})
+      expect(store.getState().firebase.stores.posts.value[1].value).toEqual({title: "Second"})
+      expect(store.getState().firebase.stores.posts.value[2].value).toEqual({title: "Third"})
     })
 
     it('array item changed', async () => {
