@@ -245,6 +245,7 @@ export default function(bindings) {
     stores: initialStores,
     url: null,
     errors: {
+      permissions: null,
       login: null,
       createUser: null,
       resetPassword: null

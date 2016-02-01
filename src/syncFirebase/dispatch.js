@@ -5,7 +5,8 @@ import {
   removeArrayChild,
   updateArray,
   updateObject,
-  receiveInitialValue
+  receiveInitialValue,
+  revokePermissions
 } from '../actions/firebase'
 
 export function dispatchChildAdded(store, localBinding) {
@@ -56,4 +57,8 @@ export function dispatchObjectUpdated(store, localBinding, snapshot) {
 
 export function dispatchInitialValueReceived(store, localBinding) {
   return store.dispatch(receiveInitialValue(localBinding))
+}
+
+export function dispatchPermissionsRevoked(store, error) {
+  return store.dispatch(revokePermissions(error))
 }

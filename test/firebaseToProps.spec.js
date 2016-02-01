@@ -107,6 +107,7 @@ describe('React', () => {
         connected: true,
         initialFetchDone: true,
         errors: {
+          permissions: null,
           login: null,
           createUser: null,
           resetPassword: null

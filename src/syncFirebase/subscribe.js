@@ -5,14 +5,20 @@ import {
   dispatchChildRemoved,
   dispatchArrayUpdated,
   dispatchObjectUpdated,
-  dispatchInitialValueReceived
+  dispatchInitialValueReceived,
+  dispatchPermissionsRevoked
 } from './dispatch'
 
 export default function subscribe(localBinding, bindOptions, options) {
-  const {type, query, populate} = bindOptions
-  const {store, onCancel} = options
+  const { type, query, populate } = bindOptions
+  const { store, onCancel } = options
   const listeners = {}
   const populated = {}
+
+  const cancelCallback = (err) => {
+    dispatchPermissionsRevoked(store, err)
+    onCancel(err)
+  }
 
   if (type === "Array") {
     let initialValueReceived = false
@@ -20,9 +26,10 @@ export default function subscribe(localBinding, bindOptions, options) {
     const populateChild = (key) => {
       return new Promise(resolve => {
         const ref = query.root().child(populate(key))
-        ref.once('value', function(snapshot) {
+        ref.once('value', (snapshot) => {
           return resolve([key, ref, snapshot.val()])
-        }, function() {
+        }, (err) => {
+          cancelCallback(err)
           return resolve([key, ref, null])
         })
       })
@@ -33,15 +40,15 @@ export default function subscribe(localBinding, bindOptions, options) {
       if (initialValueReceived) {
         if (populate) {
           const ref = query.root().child(populate(snapshot.key()))
-          ref.once('value', function(populatedSnapshot) {
+          ref.once('value', (populatedSnapshot) => {
             dispatchChildAdded(store, localBinding)(snapshot.key(), populatedSnapshot.val(), previousChildKey)
             populated[snapshot.key()] = {
               ref: ref,
-              listener: ref.on('value', function(populatedSnapshot) {
+              listener: ref.on('value', (populatedSnapshot) => {
                 dispatchChildChanged(store, localBinding)(snapshot.key(), populatedSnapshot.val())
-              })
+              }, cancelCallback)
             }
-          })
+          }, cancelCallback)
         } else {
           dispatchChildAdded(store, localBinding)(snapshot.key(), snapshot.val(), previousChildKey)
         }
@@ -70,9 +77,9 @@ export default function subscribe(localBinding, bindOptions, options) {
             const ref = populateRefs[key]
             populated[key] = {
               ref: ref,
-              listener: ref.on('value', function(populatedSnapshot) {
+              listener: ref.on('value', (populatedSnapshot) => {
                 dispatchChildChanged(store, localBinding)(key, populatedSnapshot.val())
-              })
+              }, cancelCallback)
             }
           })
         })
@@ -96,18 +103,18 @@ export default function subscribe(localBinding, bindOptions, options) {
       }
     }
 
-    listeners.child_added = query.on('child_added', onChildAdded, onCancel)
-    listeners.child_changed = query.on('child_changed', onChildChanged, onCancel)
-    listeners.child_moved = query.on('child_moved', dispatchChildMoved(store, localBinding), onCancel)
-    listeners.child_removed = query.on('child_removed', onChildRemoved, onCancel)
+    listeners.child_added = query.on('child_added', onChildAdded, cancelCallback)
+    listeners.child_changed = query.on('child_changed', onChildChanged, cancelCallback)
+    listeners.child_moved = query.on('child_moved', dispatchChildMoved(store, localBinding), cancelCallback)
+    listeners.child_removed = query.on('child_removed', onChildRemoved, cancelCallback)
 
     // listen for array value once to prevent multiple updates on initial items
-    query.once('value', onceValue, onCancel)
+    query.once('value', onceValue, cancelCallback)
   } else {
     listeners.value = query.on('value', (snapshot) => {
       dispatchObjectUpdated(store, localBinding, snapshot)
       dispatchInitialValueReceived(store, localBinding)
-    }, onCancel)
+    }, cancelCallback)
   }
 
   return {

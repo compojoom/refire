@@ -10,7 +10,8 @@ import {
   connect,
   authenticateUser,
   unauthenticateUser,
-  updateConfig
+  updateConfig,
+  cancelSubscription
 } from './actions/firebase'
 
 import createBindings from './syncFirebase/createBindings'
@@ -129,7 +130,7 @@ export default function syncFirebase(options = {}) {
     if (snapshot.val() === true) {
       store.dispatch(connect())
     }
-  })
+  }, cancelSubscription)
 
   rootRef.onAuth(function(authData) {
     if (authData) {

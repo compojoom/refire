@@ -1,6 +1,5 @@
 import Firebase from 'firebase'
 import uuid from 'node-uuid'
-import difference from 'lodash/array/difference'
 import uniq from 'lodash/array/uniq'
 
 export const ARRAY_CHILD_ADDED = "ARRAY_CHILD_ADDED"
@@ -382,4 +381,12 @@ export function clearResetPasswordError() {
 
 export function clearWriteErrors(path) {
   return updateWriteErrors(path, null)
+}
+
+export function revokePermissions(error) {
+  return updateError("permissions", error.toString())
+}
+
+export function clearPermissionsError() {
+  return updateError("permissions", null)
 }
