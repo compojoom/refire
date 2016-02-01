@@ -330,7 +330,7 @@ export function resetPassword(email) {
   }
 }
 
-export function write({ method, path, value, ownProps }) {
+export function write({ method, path = "", value, ownProps }) {
   return (dispatch, getState) => {
     const id = uuid.v4()
     const finalPath = typeof path === "function"

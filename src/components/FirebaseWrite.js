@@ -11,7 +11,7 @@ const validMethods = {
 
 export default function(options = {}) {
 
-  const { path, method } = options
+  const { path = "", method } = options
 
   if (typeof path !== "function" && typeof path !== "string") {
     throw new Error("options.path must be a function or string")
