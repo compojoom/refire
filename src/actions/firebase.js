@@ -285,7 +285,7 @@ export function createUser(email, password) {
       ref.createUser({
         email: email,
         password: password
-      }, (error) => {
+      }, (error, userData) => {
         if (error) {
           dispatch(
             updateError(
@@ -298,7 +298,7 @@ export function createUser(email, password) {
         } else {
           dispatch(updateProcessing("createUser", false))
           dispatch(updateCompleted("createUser", true))
-          return resolve()
+          return resolve(userData)
         }
       })
     })
