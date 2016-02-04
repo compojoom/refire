@@ -1,7 +1,7 @@
 export { default as syncFirebase } from './syncFirebase'
 export { default as firebaseToProps } from './firebaseToProps'
 export { default as firebaseReducer } from './reducers/firebase'
-export { default as firebaseActions } from './actions/firebase'
+export * as firebaseActions from './actions/firebase'
 export { default as FirebaseLogin } from './components/FirebaseLogin'
 export { default as FirebaseOAuth } from './components/FirebaseOAuth'
 export { default as FirebaseRegistration } from './components/FirebaseRegistration'

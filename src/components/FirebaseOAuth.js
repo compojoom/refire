@@ -1,7 +1,7 @@
 import React, { Component, PropTypes } from 'react'
 import { oAuthLogin } from '../actions/firebase'
 import { connect } from 'react-redux'
-const validProviders = ["facebook", "google", "twitter"]
+const validProviders = ["facebook", "google", "twitter", "github"]
 const validFlows = ["authWithOAuthPopup", "authWithOAuthRedirect"]
 
 @connect()
