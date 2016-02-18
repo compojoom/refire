@@ -275,6 +275,13 @@ export function oAuthLogin(flow, provider) {
   }
 }
 
+export function logout() {
+  return (dispatch, getState) => {
+    const url = getState().firebase.url
+    new Firebase(url).unauth()
+  }
+}
+
 export function createUser(email, password) {
   return (dispatch, getState) => {
     return new Promise((resolve, reject) => {
@@ -332,38 +339,43 @@ export function resetPassword(email) {
 
 export function write({ method, path = "", value, ownProps }) {
   return (dispatch, getState) => {
-    const id = uuid.v4()
-    const finalPath = typeof path === "function"
-      ? path(getState(), ownProps)
-      : path
+    return new Promise((resolve, reject) => {
 
-    dispatch(
-      updateWriteProcessing({
-        path: finalPath,
-        id: id,
-        value: true
-      })
-    )
+      const id = uuid.v4()
+      const finalPath = typeof path === "function"
+        ? path(getState(), ownProps)
+        : path
 
-    const url = `${getState().firebase.url}${finalPath}`
-    const ref = new Firebase(url)
-    ref[method](
-      value,
-      error => {
-        if (error) {
+      dispatch(
+        updateWriteProcessing({
+          path: finalPath,
+          id: id,
+          value: true
+        })
+      )
+
+      const url = `${getState().firebase.url}${finalPath}`
+      const ref = new Firebase(url)
+      ref[method](
+        value,
+        error => {
+          if (error) {
+            dispatch(
+              updateWriteErrors(finalPath, error.message)
+            )
+            return reject()
+          }
           dispatch(
-            updateWriteErrors(finalPath, error.message)
+            updateWriteProcessing({
+              path: finalPath,
+              id: id,
+              value: false
+            })
           )
+          return resolve()
         }
-        dispatch(
-          updateWriteProcessing({
-            path: finalPath,
-            id: id,
-            value: false
-          })
-        )
-      }
-    )
+      )
+    })
   }
 }
 
