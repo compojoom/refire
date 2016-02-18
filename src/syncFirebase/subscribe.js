@@ -25,7 +25,7 @@ export default function subscribe(localBinding, bindOptions, options) {
 
     const populateChild = (key) => {
       return new Promise(resolve => {
-        const ref = query.root().child(populate(key))
+        const ref = query.ref().root().child(populate(key))
         ref.once('value', (snapshot) => {
           return resolve([key, ref, snapshot.val()])
         }, (err) => {
@@ -39,7 +39,7 @@ export default function subscribe(localBinding, bindOptions, options) {
     const onChildAdded = (snapshot, previousChildKey) => {
       if (initialValueReceived) {
         if (populate) {
-          const ref = query.root().child(populate(snapshot.key()))
+          const ref = query.ref().root().child(populate(snapshot.key()))
           ref.once('value', (populatedSnapshot) => {
             dispatchChildAdded(store, localBinding)(snapshot.key(), populatedSnapshot.val(), previousChildKey)
             populated[snapshot.key()] = {
