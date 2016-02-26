@@ -77,6 +77,20 @@ function valueReplaced(state, action) {
   return u({ stores: { [path]: value } }, state)
 }
 
+function objectReplaced(state, action) {
+  const {payload: {path, value}} = action
+
+  // TODO:
+  // investigate why firebase's .val() doesn't return new reference for object when nested object's key has been deleted
+  return {
+    ...state,
+    stores: {
+      ...state.stores,
+      [path]: value
+    }
+  }
+}
+
 function initialValueReceived(state, action) {
   const {payload: {path}} = action
   return u({ initialValuesReceived: (values) => [...values, path] }, state)
@@ -179,7 +193,7 @@ export default function(bindings) {
     [ARRAY_CHILD_MOVED]: arrayChildMoved,
     [ARRAY_CHILD_REMOVED]: arrayChildRemoved,
     [ARRAY_UPDATED]: valueReplaced,
-    [OBJECT_UPDATED]: valueReplaced,
+    [OBJECT_UPDATED]: objectReplaced,
     [VALUE_REPLACED]: valueReplaced,
     [INITIAL_VALUE_RECEIVED]: initialValueReceived,
     [INITIAL_FETCH_DONE]: initialFetchDone,
