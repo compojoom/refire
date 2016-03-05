@@ -41,9 +41,10 @@ function arrayChildAdded(state, action) {
 
 function arrayChildChanged(state, action) {
   const {payload: {path, key, value}} = action
+  const currentValue = state.stores[path] || {}
 
   return u.updateIn(
-    `stores.${path}.value.${indexForKey(state.stores[path].value, key)}`,
+    `stores.${path}.value.${indexForKey(currentValue.value, key)}`,
     value,
     state
   )
