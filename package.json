@@ -1,6 +1,6 @@
 {
   "name": "refire",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "Quick prototyping with React, Firebase and Redux",
   "private": true,
   "main": "./lib/index.js",
@@ -14,7 +14,7 @@
   },
   "repository": {
     "type": "git",
-    "url": ""
+    "url": "https://github.com/hoppula/refire"
   },
   "license": "MIT",
   "author": "Lari Hoppula",

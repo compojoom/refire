@@ -2,27 +2,27 @@
 
 > Quick prototyping with React, Firebase and Redux
 
-Refire keeps your local [Redux](http://redux.js.org/) store in sync with selected [Firebase](https://www.firebase.com/) paths. You can bind Firebase paths as Strings, Objects or Arrays.
+Refire keeps your local [Redux](http://redux.js.org/) store in sync with selected [Firebase](https://www.firebase.com/) paths. You can declaratively bind Firebase paths as Strings, Objects or Arrays.
 
 You can also specify queries based on Redux state (e.g. currently logged in user or route parameter) and Refire will automatically subscribe and unsubscribe your bindings when state changes.
 
 Using provided [React](https://facebook.github.io/react/) higher order components and [React Redux](https://github.com/rackt/react-redux) helper you also get automatic re-renders for your connected views on any change.
 
-All mutation still happens through [Firebase client's](https://www.firebase.com/docs/web/api/firebase) `references`.
+All mutation happens through [Firebase client's](https://www.firebase.com/docs/web/api/firebase) `references` and there's `FirebaseWrite` HOC for easy updates from your React components.
 
 ## syncFirebase({store, url, bindings, onCancel, onAuth})
 
 syncFirebase needs bindings, a Redux store instance and a Firebase instance url.
 
-`bindings` bindings define the sync options per firebase path. See the comments below in usage example for more info.
+`bindings` bindings declaratively define the sync options per firebase path. See the comments below in **Usage example** for more info.
 
-`store` is your Redux store instance, remember to include `firebaseReducer` in your Redux reducer function, see the usage example below.
+`store` is your Redux store instance, remember to include `firebaseReducer` in your Redux reducer function, see the **Usage example** below.
 
 `url` is your firebase instance's url (don't forget the trailing slash).
 
 `onAuth` (optional) gets called after Firebase's authentication state changes.
 
-`onCancel` (optional) gets called whenever reading data fails, e.g. client doesn't have needed read permissions.
+`onCancel` (optional) gets called whenever Firebase sync operations fail, e.g. user doesn't have needed permissions.
 
 ### Usage example
 ```js
@@ -51,7 +51,7 @@ const firebaseBindings = {
   },
   // If you want to react to state changes, you can define the path dynamically
   // by setting the path as function.
-  // In this example user path would be populated with user data when user logs in
+  // In this example user store would be populated with user data when user logs in
   // and automatically cleared when user logs out.
   user: {
     type: "Object",
@@ -112,7 +112,7 @@ If you also need to return something else from Redux, pass your normal mapStateT
 )
 class Counter extends Component {
   render() {
-    // counter available as this.props.counter
+    // counter data available as this.props.counter
   }
 }
 ```
@@ -132,7 +132,7 @@ class App extends Component {
         <div>Loading...</div>
       )
     } else {
-      // firebase connected & all initial fetches done
+      // firebase connected & all initial fetching done
     }
   }
 }
@@ -161,8 +161,6 @@ These higher order components will help you with basic Firebase tasks.
 All returned values are wrapped in `{key, value}` shaped object for easier consumption.
 
 Primitives and Objects could be returned as they are, but then consumption of Array elements would be different, it's easier to have uniform way to access keys and values.
-
-I'm also not a big fan of `.key` and `.value` used in [ReactFire](https://github.com/firebase/reactfire).
 
 ### Usage example using ES6 destructuring assignment
 ```js
