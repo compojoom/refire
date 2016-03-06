@@ -14,7 +14,7 @@ import {
   revokePermissions
 } from './actions/firebase'
 
-import createBindings from './syncFirebase/createBindings'
+import createOptions from './syncFirebase/createOptions'
 import subscribe from './syncFirebase/subscribe'
 import unsubscribe from './syncFirebase/unsubscribe'
 import unsubscribeAll from './syncFirebase/unsubscribeAll'
@@ -44,22 +44,22 @@ export default function syncFirebase(options = {}) {
   const firebaseListeners = {}
   const firebasePopulated = {}
 
-  let currentBindings = createBindings(initialBindings, store.getState(), url)
+  let currentOptions = createOptions(initialBindings, store.getState(), url)
 
   store.subscribe(() => {
-    const previousBindings = {...currentBindings}
-    const nextBindings = createBindings(initialBindings, store.getState(), url)
+    const previousOptions = {...currentOptions}
+    const nextOptions = createOptions(initialBindings, store.getState(), url)
 
-    if ( !isEqual(currentBindings, nextBindings) ) {
+    if ( !isEqual(currentOptions, nextOptions) ) {
 
-      const nextBindingsKeys = Object.keys(nextBindings)
-      const currentBindingsKeys = Object.keys(currentBindings)
+      const nextOptionsKeys = Object.keys(nextOptions)
+      const currentOptionsKeys = Object.keys(currentOptions)
 
-      const subscribed = difference(nextBindingsKeys, currentBindingsKeys)
-      const unsubscribed = difference(currentBindingsKeys, nextBindingsKeys)
-      const remaining = intersection(currentBindingsKeys, nextBindingsKeys)
+      const subscribed = difference(nextOptionsKeys, currentOptionsKeys)
+      const unsubscribed = difference(currentOptionsKeys, nextOptionsKeys)
+      const remaining = intersection(currentOptionsKeys, nextOptionsKeys)
 
-      currentBindings = nextBindings
+      currentOptions = nextOptions
 
       // unsubscribe removed bindings
       unsubscribed.forEach(localBinding => {
@@ -80,7 +80,7 @@ export default function syncFirebase(options = {}) {
       subscribed.forEach(localBinding => {
         const {ref, listeners, populated} = subscribe(
           localBinding,
-          currentBindings[localBinding],
+          currentOptions[localBinding],
           {
             store: store,
             onCancel: onCancel
@@ -94,8 +94,8 @@ export default function syncFirebase(options = {}) {
       // check if subscription paths or queries have changed
       remaining.forEach(localBinding => {
         if (
-          !isEqual(currentBindings[localBinding].path, previousBindings[localBinding].path) ||
-          !isEqual(currentBindings[localBinding].queryState, previousBindings[localBinding].queryState)
+          !isEqual(currentOptions[localBinding].path, previousOptions[localBinding].path) ||
+          !isEqual(currentOptions[localBinding].queryState, previousOptions[localBinding].queryState)
         ) {
           // unsubscribe
           unsubscribe(
@@ -110,7 +110,7 @@ export default function syncFirebase(options = {}) {
           // resubscribe with new path / query
           const {ref, listeners, populated} = subscribe(
             localBinding,
-            currentBindings[localBinding],
+            currentOptions[localBinding],
             {
               store: store,
               onCancel: onCancel
@@ -144,10 +144,10 @@ export default function syncFirebase(options = {}) {
   })
 
   // initial subscriptions
-  Object.keys(currentBindings).forEach(localBinding => {
+  Object.keys(currentOptions).forEach(localBinding => {
     const {ref, listeners, populated} = subscribe(
       localBinding,
-      currentBindings[localBinding],
+      currentOptions[localBinding],
       {
         store: store,
         onCancel: onCancel
@@ -159,12 +159,12 @@ export default function syncFirebase(options = {}) {
   })
 
   // immediately mark initial fetch completed if we aren't initially subscribed to any stores
-  if (!Object.keys(currentBindings).length) {
+  if (!Object.keys(currentOptions).length) {
     store.dispatch(completeInitialFetch())
   }
 
   // mark initial values received for stores that don't have initial value
-  difference(Object.keys(initialBindings), Object.keys(currentBindings)).forEach(localBinding => {
+  difference(Object.keys(initialBindings), Object.keys(currentOptions)).forEach(localBinding => {
     store.dispatch(receiveInitialValue(localBinding))
   })
 

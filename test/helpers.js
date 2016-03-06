@@ -15,13 +15,13 @@ const Firebase = proxyquire('firebase', {
   }
 })
 
-const createBindings = proxyquire('../src/syncFirebase/createBindings', {
+const createOptions = proxyquire('../src/syncFirebase/createOptions', {
   'firebase': Firebase
 })
 
 const syncFirebase = proxyquire('../src/syncFirebase', {
   'firebase': Firebase,
-  './syncFirebase/createBindings': createBindings
+  './syncFirebase/createOptions': createOptions
 })
 
 const INCREMENT_COUNTER = "INCREMENT_COUNTER"

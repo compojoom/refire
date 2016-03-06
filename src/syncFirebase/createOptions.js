@@ -1,7 +1,7 @@
 import Firebase from 'firebase'
 import buildQueryState from './buildQueryState'
 
-export default function createBindings(bindings, state, url) {
+export default function createOptions(bindings, state, url) {
   return Object.keys(bindings).reduce((result, localBinding) => {
 
     const path = typeof bindings[localBinding].path === "function"
