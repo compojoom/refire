@@ -148,6 +148,8 @@ These higher order components will help you with basic Firebase tasks.
 
 [FirebaseLogin](docs/FirebaseLogin.md)
 
+[FirebaseLogout](docs/FirebaseLogout.md)
+
 [FirebaseOAuth](docs/FirebaseOAuth.md)
 
 [FirebaseRegistration](docs/FirebaseRegistration.md)
