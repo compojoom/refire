@@ -107,20 +107,27 @@ describe('syncFirebase', () => {
   it('should populate the state with initial bindings\' data', async () => {
     server = initServer({
 			posts: {
-        "first": {id: 1, title: "Hello", body: "World"}
+        "first": {id: "1", title: "Hello", body: "World"}
       },
-      user: {name: "Test user", email: "test@test.dev", reviews: {0: true, 2: true}},
+      user: {
+        name: "Test user",
+        email: "test@test.dev",
+        reviews: {
+          "a": true,
+          "c": true
+        }
+      },
       counter: 5,
       reviews: {
-        0: {
+        "a": {
           text: "Very good",
           rating: 5
         },
-        1: {
+        "b": {
           text: "Quite ok",
           rating: 4
         },
-        2: {
+        "c": {
           text: "Mediocre",
           rating: 3
         }
@@ -168,13 +175,13 @@ describe('syncFirebase', () => {
       value: [
         {
           key: "first",
-          value: {id: 1, title: "Hello", body: "World"}
+          value: {id: "1", title: "Hello", body: "World"}
         }
       ]
     })
     expect(store.getState().firebase.stores.user).toEqual({
       key: "user",
-      value: {name: "Test user", email: "test@test.dev", reviews: {0: true, 2: true}}
+      value: {name: "Test user", email: "test@test.dev", reviews: {"a": true, "c": true}}
     })
     expect(store.getState().firebase.stores.counter).toEqual({
       key: "counter",
@@ -184,14 +191,14 @@ describe('syncFirebase', () => {
       key: "reviews",
       value: [
         {
-          key: 0,
+          key: "a",
           value: {
             rating: 5,
             text: "Very good"
           }
         },
         {
-          key: 2,
+          key: "c",
           value: {
             rating: 3,
             text: "Mediocre"
@@ -205,7 +212,7 @@ describe('syncFirebase', () => {
 
     it('array item added', async () => {
       server = initServer({
-        posts: {0: {title: "First"}, 1: {title: "Second"}}
+        posts: {"0": {title: "First"}, "1": {title: "Second"}}
       }, PORT)
 
       const bindings = {
@@ -224,8 +231,8 @@ describe('syncFirebase', () => {
       })
       await sync.initialized
       expect(store.getState().firebase.stores.posts.value).toEqual([
-        { key: 0, value: { title: 'First' } },
-        { key: 1, value: { title: 'Second' } }
+        { key: "0", value: { title: 'First' } },
+        { key: "1", value: { title: 'Second' } }
       ])
 
       const client = new Firebase(`${url}posts`)
@@ -271,7 +278,7 @@ describe('syncFirebase', () => {
 
     it('array item removed', async () => {
       server = initServer({
-        posts: {0: {title: "First"}, 1: {title: "Second"}}
+        posts: {"0": {title: "First"}, "1": {title: "Second"}}
       }, PORT)
 
       const bindings = {
@@ -290,14 +297,14 @@ describe('syncFirebase', () => {
       })
       await sync.initialized
       expect(store.getState().firebase.stores.posts.value).toEqual([
-        { key: 0, value: { title: 'First' } },
-        { key: 1, value: { title: 'Second' } }
+        { key: "0", value: { title: "First" } },
+        { key: "1", value: { title: "Second" } }
       ])
 
       const client = new Firebase(`${url}posts/0`)
       client.remove()
       expect(store.getState().firebase.stores.posts.value).toEqual([
-        { key: 1, value: { title: 'Second' } }
+        { key: "1", value: { title: "Second" } }
       ])
     })
 
@@ -465,10 +472,10 @@ describe('syncFirebase', () => {
     it('unsubscribe previous binding and subscribe with new path if path is changed', async (done) => {
       server = initServer({
         users: {
-          1: {
+          "1": {
             name: "First user", email: "first@test.dev"
           },
-          2: {
+          "2": {
             name: "Second user", email: "second@test.dev"
           }
         }
@@ -516,7 +523,7 @@ describe('syncFirebase', () => {
           name: "Second user", email: "second@test.dev"
         })
         expect(userRef).toNotEqual(sync.refs.user)
-        expect(userListener).toNotEqual(sync.listeners.user)
+        expect(userListener).toNotBe(sync.listeners.user)
         unsubscribe()
         done()
       })
@@ -525,10 +532,10 @@ describe('syncFirebase', () => {
     it('unsubscribe previous binding and subscribe again with new query if query is changed', async (done) => {
       server = initServer({
         users: {
-          1: {
+          "1": {
             name: "First user", email: "first@test.dev"
           },
-          2: {
+          "2": {
             name: "Second user", email: "second@test.dev"
           }
         }
@@ -566,7 +573,7 @@ describe('syncFirebase', () => {
         expect(Object.keys(sync.refs).length).toEqual(1)
         expect(Object.keys(sync.listeners).length).toEqual(1)
         expect(store.getState().firebase.stores.users.value.length).toEqual(2)
-        expect(usersListener).toNotEqual(sync.listeners.users)
+        expect(usersListener).toNotBe(sync.listeners.users)
         unsubscribe()
         done()
       })
