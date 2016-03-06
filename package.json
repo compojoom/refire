@@ -2,7 +2,7 @@
   "name": "refire",
   "version": "1.0.0",
   "description": "Quick prototyping with React, Firebase and Redux",
-  "private": true,
+  "keywords": ["react", "redux", "firebase"],
   "main": "./lib/index.js",
   "scripts": {
     "build": "babel src --out-dir lib",
