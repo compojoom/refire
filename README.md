@@ -180,3 +180,7 @@ projects.map(record => {
   return <li key={id}>{project.title}</li>
 })
 ```
+
+## License
+
+MIT
