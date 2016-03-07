@@ -10,6 +10,8 @@ Using provided [React](https://facebook.github.io/react/) higher order component
 
 All mutation happens through [Firebase client's](https://www.firebase.com/docs/web/api/firebase) `references` and there's `FirebaseWrite` HOC for easy updates from your React components.
 
+There's also [refire-app](https://github.com/hoppula/refire-app), it wraps Refire, Redux, React Router and React Free Style with developer friendly API.
+
 ## syncFirebase({store, url, bindings, onCancel, onAuth})
 
 syncFirebase needs bindings, a Redux store instance and a Firebase instance url.
