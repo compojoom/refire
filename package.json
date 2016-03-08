@@ -1,7 +1,7 @@
 {
   "name": "refire",
   "version": "1.0.0",
-  "description": "Quick prototyping with React, Firebase and Redux",
+  "description": "Declarative Firebase bindings for Redux and React",
   "keywords": ["react", "redux", "firebase"],
   "main": "./lib/index.js",
   "scripts": {

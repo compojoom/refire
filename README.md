@@ -1,6 +1,6 @@
 # Refire
 
-> Quick prototyping with React, Firebase and Redux
+> Declarative Firebase bindings for Redux and React
 
 Refire keeps your local [Redux](http://redux.js.org/) store in sync with selected [Firebase](https://www.firebase.com/) paths. You can declaratively bind Firebase paths as Strings, Objects or Arrays.
 
@@ -16,7 +16,7 @@ There's also [refire-app](https://github.com/hoppula/refire-app), it wraps Refir
 
 syncFirebase needs bindings, a Redux store instance and a Firebase instance url.
 
-`bindings` bindings declaratively define the sync options per firebase path. See the comments below in **Usage example** for more info.
+`bindings` bindings define the sync options per firebase path. See the comments below in **Usage example** for more info.
 
 `store` is your Redux store instance, remember to include `firebaseReducer` in your Redux reducer function, see the **Usage example** below.
 
