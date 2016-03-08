@@ -6,7 +6,7 @@ Refire keeps your local [Redux](http://redux.js.org/) store in sync with selecte
 
 You can also specify queries based on Redux state (e.g. currently logged in user or route parameter) and Refire will automatically subscribe and unsubscribe your bindings when state changes.
 
-Using provided [React](https://facebook.github.io/react/) higher order components and [React Redux](https://github.com/rackt/react-redux) helper you also get automatic re-renders for your connected views on any change.
+Using provided [React](https://facebook.github.io/react/) higher order components and [React Redux](https://github.com/reactjs/react-redux) helper you also get automatic re-renders for your connected views on any change.
 
 All mutation happens through [Firebase client's](https://www.firebase.com/docs/web/api/firebase) `references` and there's `FirebaseWrite` HOC for easy updates from your React components.
 
@@ -102,7 +102,7 @@ const {unsubscribe} = syncFirebase({
 
 ### firebaseToProps(localBindings, mapStateToProps)
 
-Creates selector function for [react-redux's connect](https://github.com/rackt/react-redux/blob/master/docs/api.md#connectmapstatetoprops-mapdispatchtoprops-mergeprops-options).
+Creates selector function for [react-redux's connect](https://github.com/reactjs/react-redux/blob/master/docs/api.md#connectmapstatetoprops-mapdispatchtoprops-mergeprops-options).
 
 `firebaseToProps` will return the content of your given bindings as props.
 
