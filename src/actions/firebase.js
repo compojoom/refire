@@ -1,5 +1,4 @@
 import Firebase from 'firebase'
-import uuid from 'node-uuid'
 import uniq from 'lodash/array/uniq'
 
 export const ARRAY_CHILD_ADDED = "ARRAY_CHILD_ADDED"
@@ -20,6 +19,15 @@ export const PROCESSING_UPDATED = "PROCESSING_UPDATED"
 export const COMPLETED_UPDATED = "COMPLETED_UPDATED"
 export const WRITE_PROCESSING_UPDATED = "WRITE_PROCESSING_UPDATED"
 export const WRITE_ERRORS_UPDATED = "WRITE_ERRORS_UPDATED"
+
+// generated UUIDs are only used for internal request tracking
+// http://stackoverflow.com/questions/105034/create-guid-uuid-in-javascript
+function createUUID() {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    var r = Math.random()*16|0, v = c == 'x' ? r : (r&0x3|0x8);
+    return v.toString(16);
+  })
+}
 
 const createUserErrors = {
   "EMAIL_TAKEN": "The new user account cannot be created because the email is already in use.",
@@ -341,7 +349,7 @@ export function write({ method, path = "", value, ownProps }) {
   return (dispatch, getState) => {
     return new Promise((resolve, reject) => {
 
-      const id = uuid.v4()
+      const id = createUUID()
       const finalPath = typeof path === "function"
         ? path(getState(), ownProps)
         : path

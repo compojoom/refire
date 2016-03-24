@@ -40,7 +40,6 @@
   "dependencies": {
     "firebase": "^2.4.1",
     "lodash": "^3.10.1",
-    "node-uuid": "^1.4.7",
     "redux-thunk": "^2.0.1",
     "updeep": "^0.12.0"
   },
