@@ -30,7 +30,7 @@ syncFirebase needs bindings, a Redux store instance and a Firebase instance url.
 ```js
 import { applyMiddleware, createStore, compose, combineReducers } from 'redux'
 import thunk from 'redux-thunk'
-import { firebaseReducer, syncFirebase } from 'redux-firebase-sync'
+import { firebaseReducer, syncFirebase } from 'refire'
 
 const firebaseBindings = {
   // Primitives can be defined without setting any type, just set the local sync path
@@ -177,7 +177,7 @@ const {value: counter} = this.props.counter
 const {value: project} = this.props.project
 
 // Arrays
-// {key: "projects", value: [{key: "-K1XY-B3ZR...", value: {title: "redux-firebase-sync"}}]}
+// {key: "projects", value: [{key: "-K1XY-B3ZR...", value: {title: "refire"}}]}
 const {value: projects} = this.props.projects
 projects.map(record => {
   const {key: id, value: project} = record
