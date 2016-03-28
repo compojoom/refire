@@ -26,7 +26,8 @@ export default function syncFirebase(options = {}) {
     url,
     bindings: initialBindings = {},
     onCancel = () => {},
-    onAuth
+    onAuth,
+    pathParams
   } = options
 
   if (typeof store === "undefined") {
@@ -44,11 +45,21 @@ export default function syncFirebase(options = {}) {
   const firebaseListeners = {}
   const firebasePopulated = {}
 
-  let currentOptions = createOptions(initialBindings, store.getState(), url)
+  let currentOptions = createOptions({
+    bindings: initialBindings,
+    state: store.getState(),
+    url,
+    pathParams
+  })
 
   store.subscribe(() => {
     const previousOptions = {...currentOptions}
-    const nextOptions = createOptions(initialBindings, store.getState(), url)
+    const nextOptions = createOptions({
+      bindings: initialBindings,
+      state: store.getState(),
+      url,
+      pathParams
+    })
 
     if ( !isEqual(currentOptions, nextOptions) ) {
 

@@ -12,7 +12,7 @@ All mutation happens through [Firebase client's](https://www.firebase.com/docs/w
 
 There's also [refire-app](https://github.com/hoppula/refire-app), it wraps Refire, Redux, React Router and React Free Style with developer friendly API.
 
-## syncFirebase({store, url, bindings, onCancel, onAuth})
+## syncFirebase({store, url, bindings, onCancel, onAuth, pathParams})
 
 syncFirebase needs bindings, a Redux store instance and a Firebase instance url.
 
@@ -25,6 +25,8 @@ syncFirebase needs bindings, a Redux store instance and a Firebase instance url.
 `onAuth` (optional) gets called after Firebase's authentication state changes.
 
 `onCancel` (optional) gets called whenever Firebase sync operations fail, e.g. user doesn't have needed permissions.
+
+`pathParams` (optional) gets called with state and result will be provided as second parameter for bindings' path function.
 
 ### Usage example
 ```js
