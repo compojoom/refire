@@ -579,6 +579,87 @@ describe('syncFirebase', () => {
       })
     })
 
+    it('populate should be cancelled when binding is unsubscribed', async (done) => {
+
+      server = initServer({
+        userReviews: {
+          "2": {
+            "a": true,
+            "d": true,
+            "f": true
+          },
+          "4": {
+            "b": true,
+            "c": true,
+            "e": true
+          }
+        },
+        reviews: {
+          "a": { rating: 5 },
+          "b": { rating: 4 },
+          "c": { rating: 3 },
+          "d": { rating: 4 },
+          "e": { rating: 5 },
+          "f": { rating: 4 }
+        }
+      }, PORT)
+
+      const bindings = {
+        userReviews: {
+          path: (state) => {
+            return (state.counter === 2 || state.counter === 4)
+              ? `userReviews/${state.counter}`
+              : null
+          },
+          populate: (key) => `reviews/${key}`
+        }
+      }
+
+      const store = initStore(bindings, {
+        counter: initCounterReducer()
+      })
+      const sync = syncFirebase({
+        store: store,
+        bindings: bindings,
+        url: newServerUrl()
+      })
+      expect(
+        Object.keys(store.getState().firebase.stores).length
+      ).toBe(1)
+
+      await sync.initialized
+
+      store.dispatch(incrementCounter())
+      new Promise((resolve) => {
+        const unsubscribe = store.subscribe(() => {
+          const userReviews = store.getState().firebase.stores.userReviews
+          expect(userReviews.key).toBe("2")
+          expect(userReviews.value.map(review => review.key)).toEqual(["a", "d", "f"])
+          unsubscribe()
+          resolve()
+        })
+      }).then(() => {
+        new Promise((resolve) => {
+          store.dispatch(incrementCounter())
+          const unsubscribe = store.subscribe(() => {
+            expect(store.getState().firebase.stores.userReviews).toEqual(null)
+            unsubscribe()
+            resolve()
+          })
+        }).then(() => {
+          store.dispatch(incrementCounter())
+          const unsubscribe = store.subscribe(() => {
+            const userReviews = store.getState().firebase.stores.userReviews
+            expect(userReviews.key).toBe("4")
+            expect(userReviews.value.map(review => review.key)).toEqual(["b", "c", "e"])
+            unsubscribe()
+            done()
+          })
+        })
+      })
+
+    })
+
   })
 
 })

@@ -43,6 +43,11 @@ function arrayChildChanged(state, action) {
   const {payload: {path, key, value}} = action
   const currentValue = state.stores[path] || {}
 
+  // skip update if key isn't present in current array
+  if (indexForKey(currentValue.value, key) === -1) {
+    return state
+  }
+
   return u.updateIn(
     `stores.${path}.value.${indexForKey(currentValue.value, key)}`,
     value,

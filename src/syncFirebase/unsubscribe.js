@@ -5,6 +5,7 @@ export default function unsubscribe(ref, listeners, populated) {
     }
   })
 
+  // cancel change listeners for populated refs
   Object.keys(populated).forEach(key => {
     populated[key].ref.off('value', populated[key].listener)
   })

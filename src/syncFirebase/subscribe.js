@@ -109,7 +109,8 @@ export default function subscribe(localBinding, bindOptions, options) {
     listeners.child_removed = query.on('child_removed', onChildRemoved, cancelCallback)
 
     // listen for array value once to prevent multiple updates on initial items
-    query.once('value', onceValue, (err) => {
+    listeners.value = query.on('value', onceValue, (err) => {
+      query.off('value', listeners.value)
       dispatchInitialValueReceived(store, localBinding)
       cancelCallback(err)
     })
