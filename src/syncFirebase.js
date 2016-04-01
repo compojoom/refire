@@ -150,7 +150,7 @@ export default function syncFirebase(options = {}) {
       store.dispatch(unauthenticateUser())
     }
     if (onAuth && typeof onAuth === "function") {
-      onAuth(authData)
+      onAuth(authData, rootRef)
     }
   })
 
