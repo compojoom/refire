@@ -187,6 +187,10 @@ projects.map(record => {
 })
 ```
 
+## Promises needed
+
+Refire uses [Promises](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise) but doesn't include any polyfill. If you want to use Refire in browsers without Promise support, you have to include something like [es6-promise](https://github.com/stefanpenner/es6-promise) or [native-promise-only](https://github.com/getify/native-promise-only).
+
 ## License
 
 MIT
