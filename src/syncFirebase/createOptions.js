@@ -1,7 +1,7 @@
-import Firebase from 'firebase'
+import firebase from 'firebase'
 import buildQueryState from './buildQueryState'
 
-export default function createOptions({bindings, pathParams, state, url}) {
+export default function createOptions({bindings, pathParams, state}) {
   return Object.keys(bindings).reduce((result, localBinding) => {
 
     const paramsState = typeof pathParams === "function"
@@ -17,7 +17,7 @@ export default function createOptions({bindings, pathParams, state, url}) {
         ? bindings[localBinding].query(buildQueryState(), state).getState()
         : bindings[localBinding].query
 
-      const firebaseRef = new Firebase(`${url}${path}`)
+      const firebaseRef = firebase.database().ref(path)
 
       const query = bindings[localBinding].query
         ? bindings[localBinding].query(firebaseRef, state)

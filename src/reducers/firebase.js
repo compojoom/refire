@@ -15,7 +15,6 @@ import {
   CONNECTED,
   USER_AUTHENTICATED,
   USER_UNAUTHENTICATED,
-  CONFIG_UPDATED,
   ERROR_UPDATED,
   PROCESSING_UPDATED,
   COMPLETED_UPDATED,
@@ -118,11 +117,6 @@ function userUnauthenticated(state) {
   return u({ authenticatedUser: null }, state)
 }
 
-function configUpdated(state, action) {
-  const {payload: {url}} = action
-  return u({ url: url }, state)
-}
-
 function updateError(state, action) {
   const {payload: {field, error}} = action
   return u({ errors: { [field]: error } }, state)
@@ -170,7 +164,6 @@ export default function(bindings) {
     initialFetchDone: false,
     initialValuesReceived: [],
     stores: initialStores,
-    url: null,
     errors: {
       permissions: null,
       login: null,
@@ -206,7 +199,6 @@ export default function(bindings) {
     [CONNECTED]: connected,
     [USER_AUTHENTICATED]: userAuthenticated,
     [USER_UNAUTHENTICATED]: userUnauthenticated,
-    [CONFIG_UPDATED]: configUpdated,
     [ERROR_UPDATED]: updateError,
     [PROCESSING_UPDATED]: updateProcessing,
     [COMPLETED_UPDATED]: updateCompleted,

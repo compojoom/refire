@@ -2,18 +2,15 @@ import React, { Component, PropTypes } from 'react'
 import { oAuthLogin } from '../actions/firebase'
 import { connect } from 'react-redux'
 const validProviders = ["facebook", "google", "twitter", "github"]
-const validFlows = ["authWithOAuthPopup", "authWithOAuthRedirect"]
+const validFlows = ["popup", "redirect"]
 
 @connect()
 class FirebaseOAuth extends Component {
 
   static propTypes = {
     provider: PropTypes.oneOf(validProviders),
-    flow: PropTypes.oneOf(validFlows)
-  }
-
-  static contextTypes = {
-    firebase: PropTypes.object
+    flow: PropTypes.oneOf(validFlows),
+    scopes: PropTypes.array
   }
 
   constructor(props) {
@@ -22,9 +19,9 @@ class FirebaseOAuth extends Component {
   }
 
   authenticate() {
-    const flow = this.props.flow || "authWithOAuthPopup"
+    const flow = this.props.flow || "popup"
     this.props.dispatch(
-      oAuthLogin(flow, this.props.provider)
+      oAuthLogin(flow, this.props.provider, this.props.scopes)
     ).catch(() => {})
   }
 

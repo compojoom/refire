@@ -1,4 +1,4 @@
-import Firebase from 'firebase'
+import firebase from 'firebase'
 import uniq from 'lodash/array/uniq'
 
 export const ARRAY_CHILD_ADDED = "ARRAY_CHILD_ADDED"
@@ -13,12 +13,23 @@ export const INITIAL_FETCH_DONE = "INITIAL_FETCH_DONE"
 export const CONNECTED = "CONNECTED"
 export const USER_AUTHENTICATED = "USER_AUTHENTICATED"
 export const USER_UNAUTHENTICATED = "USER_UNAUTHENTICATED"
-export const CONFIG_UPDATED = "CONFIG_UPDATED"
 export const ERROR_UPDATED = "ERROR_UPDATED"
 export const PROCESSING_UPDATED = "PROCESSING_UPDATED"
 export const COMPLETED_UPDATED = "COMPLETED_UPDATED"
 export const WRITE_PROCESSING_UPDATED = "WRITE_PROCESSING_UPDATED"
 export const WRITE_ERRORS_UPDATED = "WRITE_ERRORS_UPDATED"
+
+const authProviders = {
+  facebook: "FacebookAuthProvider",
+  github: "GithubAuthProvider",
+  google: "GoogleAuthProvider",
+  twitter: "TwitterAuthProvider",
+}
+
+const authFlows = {
+  popup: "signInWithPopup",
+  redirect: "signInWithRedirect",
+}
 
 // generated UUIDs are only used for internal request tracking
 // http://stackoverflow.com/questions/105034/create-guid-uuid-in-javascript
@@ -100,13 +111,6 @@ function updateCompleted(field, value) {
   }
 }
 
-export function updateConfig(options) {
-  return {
-    type: CONFIG_UPDATED,
-    payload: options
-  }
-}
-
 export function addArrayChild(path, key, value, previousChildKey) {
   return {
     type: ARRAY_CHILD_ADDED,
@@ -135,7 +139,7 @@ export function moveArrayChild(path, snapshot, previousChildKey) {
     type: ARRAY_CHILD_MOVED,
     payload: {
       path: path,
-      key: snapshot.key(),
+      key: snapshot.key,
       previousChildKey: previousChildKey
     }
   }
@@ -146,7 +150,7 @@ export function removeArrayChild(path, snapshot) {
     type: ARRAY_CHILD_REMOVED,
     payload: {
       path: path,
-      key: snapshot.key()
+      key: snapshot.key
     }
   }
 }
@@ -173,7 +177,7 @@ export function updateObject(path, snapshot) {
     type: OBJECT_UPDATED,
     payload: {
       path: path,
-      value: createRecord(snapshot.key(), snapshot.val())
+      value: createRecord(snapshot.key, snapshot.val())
     }
   }
 }
@@ -236,114 +240,90 @@ export function unauthenticateUser() {
 }
 
 export function passwordLogin(email, password) {
-  return (dispatch, getState) => {
+  return (dispatch) => {
     return new Promise((resolve, reject) => {
       dispatch(updateProcessing("login", true))
-      const url = getState().firebase.url
-      const ref = new Firebase(url)
-      ref.authWithPassword(
-        { email: email, password: password },
-        (error) => {
-          if (error) {
-            dispatch(updateError("login", error.message))
-            dispatch(updateProcessing("login", false))
-            return reject()
-          } else {
-            dispatch(updateProcessing("login", false))
-            dispatch(updateCompleted("login", true))
-            return resolve()
-          }
-          // authentication state changes are handled in syncFirebase.js
-        }
-      )
+
+      firebase.auth().signInWithEmailAndPassword(email, password).then(() => {
+        dispatch(updateProcessing("login", false))
+        dispatch(updateCompleted("login", true))
+        return resolve()
+      }).catch(error => {
+        dispatch(updateError("login", error.message))
+        dispatch(updateProcessing("login", false))
+        return reject()
+      })
     })
   }
 }
 
-export function oAuthLogin(flow, provider) {
-  return (dispatch, getState) => {
+export function oAuthLogin(flowCode, providerCode, scopes = []) {
+  return (dispatch) => {
     return new Promise((resolve, reject) => {
       dispatch(updateProcessing("login", true))
 
-      const url = getState().firebase.url
-      const ref = new Firebase(url)
-      ref[flow](
-        provider,
-        (error) => {
-          if (error) {
-            dispatch(updateError("login", error.message))
-            dispatch(updateProcessing("login", false))
-            return reject()
-          } else {
-            dispatch(updateProcessing("createUser", false))
-            dispatch(updateCompleted("login", true))
-            return resolve()
-          }
-          // authentication state changes are handled in syncFirebase.js
-        }
-      )
+      const provider = new firebase.auth[authProviders[providerCode]]()
+      scopes.forEach(scope => {
+        provider.addScope(scope)
+      })
+      const flow = authFlows[flowCode]
+      firebase.auth()[flow](provider).then(() => {
+        dispatch(updateProcessing("login", false))
+        dispatch(updateCompleted("login", true))
+        return resolve()
+      }).catch(error => {
+        dispatch(updateError("login", error.message))
+        dispatch(updateProcessing("login", false))
+        return reject()
+      })
     })
   }
 }
 
 export function logout() {
-  return (dispatch, getState) => {
-    const url = getState().firebase.url
-    new Firebase(url).unauth()
+  return () => {
+    firebase.auth().signOut()
   }
 }
 
 export function createUser(email, password) {
-  return (dispatch, getState) => {
+  return (dispatch) => {
     return new Promise((resolve, reject) => {
       dispatch(updateProcessing("createUser", true))
 
-      const url = getState().firebase.url
-      const ref = new Firebase(url)
-      ref.createUser({
-        email: email,
-        password: password
-      }, (error, userData) => {
-        if (error) {
-          dispatch(
-            updateError(
-              "createUser",
-              createUserErrors[error.code] || error.message
-            )
+      firebase.auth().createUserWithEmailAndPassword(email, password).then(userData => {
+        dispatch(updateProcessing("createUser", false))
+        dispatch(updateCompleted("createUser", true))
+        return resolve(userData)
+      }).catch(error => {
+        dispatch(
+          updateError(
+            "createUser",
+            createUserErrors[error.code] || error.message
           )
-          dispatch(updateProcessing("createUser", false))
-          return reject()
-        } else {
-          dispatch(updateProcessing("createUser", false))
-          dispatch(updateCompleted("createUser", true))
-          return resolve(userData)
-        }
+        )
+        dispatch(updateProcessing("createUser", false))
+        return reject()
       })
     })
   }
 }
 
 export function resetPassword(email) {
-  return (dispatch, getState) => {
+  return (dispatch) => {
     dispatch(updateProcessing("resetPassword", true))
 
-    const url = getState().firebase.url
-    const ref = new Firebase(url)
-    ref.resetPassword({
-      email: email
-    }, (error) => {
-      if (error) {
-        dispatch(
-          updateError(
-            "resetPassword",
-            resetPasswordErrors[error.code] || error.message
-          )
+    firebase.auth().sendPasswordResetEmail(email).then(() => {
+      dispatch(updateProcessing("resetPassword", false))
+      dispatch(updateCompleted("resetPassword", true))
+    }).catch(error => {
+      dispatch(
+        updateError(
+          "resetPassword",
+          resetPasswordErrors[error.code] || error.message
         )
-        dispatch(updateProcessing("resetPassword", false))
-      } else {
-        dispatch(updateProcessing("resetPassword", false))
-        dispatch(updateCompleted("resetPassword", true))
-      }
+      )
+      dispatch(updateProcessing("resetPassword", false))
     })
   }
 }
@@ -355,7 +335,7 @@ export function write({ method, path = "", value, ownProps }) {
       const id = createUUID()
       const finalPath = typeof path === "function"
         ? path(getState(), ownProps)
-        : path
+        : (path ? path : "/")
 
       dispatch(
         updateWriteProcessing({
@@ -365,8 +345,7 @@ export function write({ method, path = "", value, ownProps }) {
         })
       )
 
-      const url = `${getState().firebase.url}${finalPath}`
-      const ref = new Firebase(url)
+      const ref = firebase.database().ref(finalPath)
       ref[method](
         value,
         error => {

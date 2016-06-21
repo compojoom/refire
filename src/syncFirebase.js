@@ -1,4 +1,4 @@
-import Firebase from 'firebase'
+import firebase from 'firebase'
 import isEqual from 'lodash/lang/isEqual'
 import difference from 'lodash/array/difference'
 import intersection from 'lodash/array/intersection'
@@ -10,7 +10,6 @@ import {
   connect,
   authenticateUser,
   unauthenticateUser,
-  updateConfig,
   revokePermissions
 } from './actions/firebase'
 
@@ -22,8 +21,9 @@ import unsubscribeAll from './syncFirebase/unsubscribeAll'
 export default function syncFirebase(options = {}) {
 
   const {
+    apiKey,
     store,
-    url,
+    projectId,
     bindings: initialBindings = {},
     onCancel = () => {},
     onAuth,
@@ -34,13 +34,27 @@ export default function syncFirebase(options = {}) {
     throw new Error("syncFirebase: Redux store reference not found in options")
   }
 
-  if (typeof url === "undefined") {
-    throw new Error("syncFirebase: Firebase url not found in options")
+  if (typeof projectId === "undefined") {
+    throw new Error("syncFirebase: projectId not found in options")
   }
 
-  store.dispatch(updateConfig({url: url}))
+  if (typeof apiKey === "undefined") {
+    throw new Error("syncFirebase: apiKey not found in options")
+  }
 
-  const rootRef = new Firebase(url)
+  if (typeof url !== "undefined") {
+    throw new Error("syncFirebase: url is deprecated in options, use projectId & apiKey instead")
+  }
+
+  const config = {
+    apiKey: apiKey,
+    authDomain: `${projectId}.firebaseapp.com`,
+    databaseURL: `https://${projectId}.firebaseio.com`,
+    storageBucket: `${projectId}.appspot.com`,
+  }
+  firebase.initializeApp(config)
+
+  const rootRef = firebase.database().ref()
   const firebaseRefs = {}
   const firebaseListeners = {}
   const firebasePopulated = {}
@@ -48,7 +62,7 @@ export default function syncFirebase(options = {}) {
   let currentOptions = createOptions({
     bindings: initialBindings,
     state: store.getState(),
-    url,
+    projectId,
     pathParams
   })
 
@@ -57,7 +71,7 @@ export default function syncFirebase(options = {}) {
     const nextOptions = createOptions({
       bindings: initialBindings,
       state: store.getState(),
-      url,
+      projectId,
       pathParams
     })
 
@@ -143,14 +157,17 @@ export default function syncFirebase(options = {}) {
     }
   }, revokePermissions)
 
-  rootRef.onAuth(function(authData) {
-    if (authData) {
-      store.dispatch(authenticateUser(authData))
+  firebase.auth().onAuthStateChanged(function(authData) {
+    // TODO: decide proper user data format
+    // current format is like this for backwards compatibility with 1.x
+    const user = authData ? { ...authData.providerData[0], uid: authData.uid } : null
+    if (user) {
+      store.dispatch(authenticateUser(user))
     } else {
       store.dispatch(unauthenticateUser())
     }
     if (onAuth && typeof onAuth === "function") {
-      onAuth(authData, rootRef)
+      onAuth(user, rootRef)
     }
   })
 

@@ -57,13 +57,22 @@ describe('syncFirebase', () => {
 
   })
 
-  it('should throw if url is not defined in options', () => {
+  it('should throw if apiKey and projectId are not defined in options', () => {
     expect(() => {
       syncFirebase({
         bindings: {},
-        store: {}
+        store: {},
+        apiKey: "test"
       })
-    }).toThrow(/Firebase url not found in options/)
+    }).toThrow(/projectId not found in options/)
+
+    expect(() => {
+      syncFirebase({
+        bindings: {},
+        store: {},
+        projectId: "test"
+      })
+    }).toThrow(/apiKey not found in options/)
   })
 
   it('should return unsubscribe method which unsubscribes all bindings', () => {
