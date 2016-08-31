@@ -1,38 +1,18 @@
+/* eslint-env node, mocha */
 import expect from 'expect'
-import React, { createClass, Children, PropTypes, Component } from 'react'
-import ReactDOM from 'react-dom'
+import React, { Children, PropTypes, Component } from 'react'
 import TestUtils from 'react-addons-test-utils'
-import { createStore } from 'redux'
 import { connect } from 'react-redux'
-
-import originalWebsocket from 'faye-websocket'
-import proxyquire from 'proxyquire'
-
-const Firebase = proxyquire('firebase', {
-  'faye-websocket': {
-    Client: function (url) {
-      url = url.replace(/dummy\d+\.firebaseio\.test/i, 'localhost').replace('wss://', 'ws://')
-      return new originalWebsocket.Client(url)
-    }
-  }
-})
-
 import { firebaseToProps } from '../src/index'
 import {
-  initServer,
-  initStore,
   initSync,
-  initCounterReducer,
   incrementCounter
 } from './helpers'
-
-const PORT = 46000
 
 describe('React', () => {
   describe('firebaseToProps selector', () => {
     let server
     let unsubscribe
-    let sequentialConnectionId = 0
 
   	afterEach(function () {
   		if (server) {
@@ -44,25 +24,18 @@ describe('React', () => {
       }
   	})
 
-  	function newServerUrl() {
-  		return 'ws://dummy' + (sequentialConnectionId++) + '.firebaseio.test:' + PORT + '/'
-  	}
-
     class ProviderMock extends Component {
       static childContextTypes = {
-        store: PropTypes.object.isRequired,
-        firebase: PropTypes.object.isRequired
+        store: PropTypes.object.isRequired
       }
 
       constructor(props) {
         super(props)
-        this.firebase = new Firebase(props.url)
       }
 
       getChildContext() {
         return {
-          store: this.props.store,
-          firebase: this.firebase
+          store: this.props.store
         }
       }
 
@@ -78,12 +51,11 @@ describe('React', () => {
     }
 
     it('should provide _status', async () => {
-      let initialized, store
-      ({initialized, server, unsubscribe, store} = initSync({
+      let initialized, store, name
+
+      ({initialized, server, unsubscribe, store, name} = initSync({
         bindings: {},
-        data: {},
-        port: PORT,
-        url: newServerUrl()
+        data: {}
       }))
 
       await initialized
@@ -96,7 +68,7 @@ describe('React', () => {
       }
 
       const tree = TestUtils.renderIntoDocument(
-        <ProviderMock store={store} url="https://dummy1.firebaseio.test/">
+        <ProviderMock store={store}>
           <Counter />
         </ProviderMock>
       )
@@ -106,6 +78,7 @@ describe('React', () => {
         authenticatedUser: null,
         connected: true,
         initialFetchDone: true,
+        name: name,
         errors: {
           permissions: null,
           login: null,
@@ -133,9 +106,7 @@ describe('React', () => {
       let initialized, store
       ({initialized, server, unsubscribe, store} = initSync({
         bindings: {counter: {path: "counter"}},
-        data: {counter: 5},
-        port: PORT,
-        url: newServerUrl()
+        data: {counter: 5}
       }))
 
       await initialized
@@ -148,7 +119,7 @@ describe('React', () => {
       }
 
       const tree = TestUtils.renderIntoDocument(
-        <ProviderMock store={store} url="https://dummy1.firebaseio.test/">
+        <ProviderMock store={store}>
           <Counter />
         </ProviderMock>
       )
@@ -170,9 +141,7 @@ describe('React', () => {
           posts: {
             "first": {id: 1, title: "Hello", body: "World"}
           }
-        },
-        port: PORT,
-        url: newServerUrl()
+        }
       }))
 
       await initialized
@@ -185,7 +154,7 @@ describe('React', () => {
       }
 
       const tree = TestUtils.renderIntoDocument(
-        <ProviderMock store={store} url="https://dummy1.firebaseio.test/">
+        <ProviderMock store={store}>
           <Counter />
         </ProviderMock>
       )
@@ -210,9 +179,7 @@ describe('React', () => {
       let initialized, store
       ({initialized, server, unsubscribe, store} = initSync({
         bindings: { user: {type: "Object", path: "user"} },
-        data: { user: {name: "Test user", email: "test@test.dev"} },
-        port: PORT,
-        url: newServerUrl()
+        data: { user: {name: "Test user", email: "test@test.dev"} }
       }))
 
       await initialized
@@ -225,7 +192,7 @@ describe('React', () => {
       }
 
       const tree = TestUtils.renderIntoDocument(
-        <ProviderMock store={store} url="https://dummy1.firebaseio.test/">
+        <ProviderMock store={store}>
           <Counter />
         </ProviderMock>
       )
@@ -252,9 +219,7 @@ describe('React', () => {
             }
           }
         },
-        data: { user: {name: "Test user", email: "test@test.dev"} },
-        port: PORT,
-        url: newServerUrl()
+        data: { user: {name: "Test user", email: "test@test.dev"} }
       }))
 
       await initialized
@@ -267,7 +232,7 @@ describe('React', () => {
       }
 
       const tree = TestUtils.renderIntoDocument(
-        <ProviderMock store={store} url="https://dummy1.firebaseio.test/">
+        <ProviderMock store={store}>
           <Counter />
         </ProviderMock>
       )
@@ -299,9 +264,7 @@ describe('React', () => {
             }
           }
         },
-        data: { user: {name: "Test user", email: "test@test.dev"} },
-        port: PORT,
-        url: newServerUrl()
+        data: { user: {name: "Test user", email: "test@test.dev"} }
       }))
 
       await initialized
@@ -314,7 +277,7 @@ describe('React', () => {
       }
 
       const tree = TestUtils.renderIntoDocument(
-        <ProviderMock store={store} url="https://dummy1.firebaseio.test/">
+        <ProviderMock store={store}>
           <Counter />
         </ProviderMock>
       )
@@ -358,9 +321,7 @@ describe('React', () => {
               name: "Second user", email: "second@test.dev"
             }
           }
-        },
-        port: PORT,
-        url: newServerUrl()
+        }
       }))
 
       await initialized
@@ -373,7 +334,7 @@ describe('React', () => {
       }
 
       const tree = TestUtils.renderIntoDocument(
-        <ProviderMock store={store} url="https://dummy1.firebaseio.test/">
+        <ProviderMock store={store}>
           <Counter />
         </ProviderMock>
       )
