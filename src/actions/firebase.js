@@ -13,6 +13,7 @@ export const INITIAL_FETCH_DONE = "INITIAL_FETCH_DONE"
 export const CONNECTED = "CONNECTED"
 export const USER_AUTHENTICATED = "USER_AUTHENTICATED"
 export const USER_UNAUTHENTICATED = "USER_UNAUTHENTICATED"
+export const CONFIG_UPDATED = "CONFIG_UPDATED"
 export const ERROR_UPDATED = "ERROR_UPDATED"
 export const PROCESSING_UPDATED = "PROCESSING_UPDATED"
 export const COMPLETED_UPDATED = "COMPLETED_UPDATED"
@@ -108,6 +109,13 @@ function updateCompleted(field, value) {
       field: field,
       value: value
     }
+  }
+}
+
+export function updateConfig(options) {
+  return {
+    type: CONFIG_UPDATED,
+    payload: options
   }
 }
 
@@ -240,11 +248,13 @@ export function unauthenticateUser() {
 }
 
 export function passwordLogin(email, password) {
-  return (dispatch) => {
+  return (dispatch, getState) => {
     return new Promise((resolve, reject) => {
       dispatch(updateProcessing("login", true))
 
-      firebase.auth().signInWithEmailAndPassword(email, password).then(() => {
+      const {firebase: {name}} = getState()
+
+      firebase.app(name).auth().signInWithEmailAndPassword(email, password).then(() => {
         dispatch(updateProcessing("login", false))
         dispatch(updateCompleted("login", true))
         return resolve()
@@ -258,7 +268,7 @@ export function passwordLogin(email, password) {
 }
 
 export function oAuthLogin(flowCode, providerCode, scopes = []) {
-  return (dispatch) => {
+  return (dispatch, getState) => {
     return new Promise((resolve, reject) => {
       dispatch(updateProcessing("login", true))
 
@@ -267,7 +277,8 @@ export function oAuthLogin(flowCode, providerCode, scopes = []) {
         provider.addScope(scope)
       })
       const flow = authFlows[flowCode]
-      firebase.auth()[flow](provider).then(() => {
+      const {firebase: {name}} = getState()
+      firebase.app(name).auth()[flow](provider).then(() => {
         dispatch(updateProcessing("login", false))
         dispatch(updateCompleted("login", true))
         return resolve()
@@ -287,11 +298,13 @@ export function logout() {
 }
 
 export function createUser(email, password) {
-  return (dispatch) => {
+  return (dispatch, getState) => {
     return new Promise((resolve, reject) => {
       dispatch(updateProcessing("createUser", true))
 
-      firebase.auth().createUserWithEmailAndPassword(email, password).then(userData => {
+      const {firebase: {name}} = getState()
+
+      firebase.app(name).auth().createUserWithEmailAndPassword(email, password).then(userData => {
         dispatch(updateProcessing("createUser", false))
         dispatch(updateCompleted("createUser", true))
         return resolve(userData)
@@ -310,10 +323,12 @@ export function createUser(email, password) {
 }
 
 export function resetPassword(email) {
-  return (dispatch) => {
+  return (dispatch, getState) => {
     dispatch(updateProcessing("resetPassword", true))
 
-    firebase.auth().sendPasswordResetEmail(email).then(() => {
+    const {firebase: {name}} = getState()
+
+    firebase.app(name).auth().sendPasswordResetEmail(email).then(() => {
       dispatch(updateProcessing("resetPassword", false))
       dispatch(updateCompleted("resetPassword", true))
     }).catch(error => {
@@ -336,6 +351,7 @@ export function write({ method, path = "", value, ownProps }) {
       const finalPath = typeof path === "function"
         ? path(getState(), ownProps)
         : (path ? path : "/")
+      const {firebase: {name}} = getState()
 
       dispatch(
         updateWriteProcessing({
@@ -345,7 +361,7 @@ export function write({ method, path = "", value, ownProps }) {
         })
       )
 
-      const ref = firebase.database().ref(finalPath)
+      const ref = firebase.app(name).database().ref(finalPath)
       ref[method](
         value,
         error => {

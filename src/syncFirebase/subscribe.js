@@ -1,4 +1,5 @@
 import firebase from 'firebase'
+
 import {
   dispatchChildAdded,
   dispatchChildChanged,
@@ -12,7 +13,7 @@ import {
 
 export default function subscribe(localBinding, bindOptions, options) {
   const { type, query, populate } = bindOptions
-  const { store, onCancel } = options
+  const { store, onCancel, name } = options
   const listeners = {}
   const populated = {}
 
@@ -26,7 +27,7 @@ export default function subscribe(localBinding, bindOptions, options) {
 
     const populateChild = (key) => {
       return new Promise(resolve => {
-        const ref = firebase.database().ref(populate(key))
+        const ref = firebase.app(name).database().ref(populate(key))
         ref.once('value', (snapshot) => {
           return resolve([key, ref, snapshot.val()])
         }, (err) => {
@@ -40,7 +41,7 @@ export default function subscribe(localBinding, bindOptions, options) {
     const onChildAdded = (snapshot, previousChildKey) => {
       if (initialValueReceived) {
         if (populate) {
-          const ref = firebase.database().ref(populate(snapshot.key))
+          const ref = firebase.app(name).database().ref(populate(snapshot.key))
           ref.once('value', (populatedSnapshot) => {
             dispatchChildAdded(store, localBinding)(snapshot.key, populatedSnapshot.val(), previousChildKey)
             populated[snapshot.key] = {
