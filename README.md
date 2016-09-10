@@ -1,9 +1,5 @@
 # Refire
 
-Install 2.0.0 beta using `npm install -S refire@2.0.0-beta1`
-
-### Note: this branch is still experimental and lacks test coverage
-
 > Declarative Firebase bindings for Redux and React
 
 Refire keeps your local [Redux](http://redux.js.org/) store in sync with selected [Firebase](https://www.firebase.com/) paths. You can declaratively bind Firebase paths as Strings, Objects or Arrays.
@@ -16,9 +12,9 @@ All mutation happens through [Firebase client's](https://www.firebase.com/docs/w
 
 There's also [refire-app](https://github.com/hoppula/refire-app), it wraps Refire, Redux, React Router and React Free Style with developer friendly API.
 
-## syncFirebase({apiKey, projectId, store, bindings, onCancel, onAuth, pathParams})
+## syncFirebase({apiKey, projectId, store, bindings, onCancel, onAuth, pathParams, databaseURL, serviceAccount, name})
 
-syncFirebase needs bindings, a Redux store instance and a Firebase instance settings (api key & project id).
+syncFirebase needs bindings, a Redux store instance and a Firebase instance settings (apiKey & projectId).
 
 `apiKey` is needed for firebase client since 3.x, you can obtain it from [Firebase console](https://console.firebase.google.com), select your project and go to `Add Firebase to your web app`.
 
@@ -27,6 +23,12 @@ syncFirebase needs bindings, a Redux store instance and a Firebase instance sett
 `bindings` bindings define the sync options per firebase path. See the comments below in **Usage example** for more info.
 
 `store` is your Redux store instance, remember to include `firebaseReducer` in your Redux reducer function, see the **Usage example** below.
+
+`databaseURL` (optional) you can override default `projectId.firebaseio.com` url by setting `databaseURL`, pass the whole url.
+
+`serviceAccount` (optional) is only for server-side usage, see [Add Firebase to your Server](https://firebase.google.com/docs/server/setup) for instructions.
+
+`name` (optional) unique identifier for this instance, defaults to `[DEFAULT]`.
 
 `onAuth` (optional) gets called after Firebase's authentication state changes.
 
