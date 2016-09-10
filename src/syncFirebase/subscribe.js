@@ -1,3 +1,5 @@
+import firebase from 'firebase'
+
 import {
   dispatchChildAdded,
   dispatchChildChanged,
@@ -11,7 +13,7 @@ import {
 
 export default function subscribe(localBinding, bindOptions, options) {
   const { type, query, populate } = bindOptions
-  const { store, onCancel } = options
+  const { store, onCancel, name } = options
   const listeners = {}
   const populated = {}
 
@@ -25,7 +27,7 @@ export default function subscribe(localBinding, bindOptions, options) {
 
     const populateChild = (key) => {
       return new Promise(resolve => {
-        const ref = query.ref().root().child(populate(key))
+        const ref = firebase.app(name).database().ref(populate(key))
         ref.once('value', (snapshot) => {
           return resolve([key, ref, snapshot.val()])
         }, (err) => {
@@ -39,18 +41,18 @@ export default function subscribe(localBinding, bindOptions, options) {
     const onChildAdded = (snapshot, previousChildKey) => {
       if (initialValueReceived) {
         if (populate) {
-          const ref = query.ref().root().child(populate(snapshot.key()))
+          const ref = firebase.app(name).database().ref(populate(snapshot.key))
           ref.once('value', (populatedSnapshot) => {
-            dispatchChildAdded(store, localBinding)(snapshot.key(), populatedSnapshot.val(), previousChildKey)
-            populated[snapshot.key()] = {
+            dispatchChildAdded(store, localBinding)(snapshot.key, populatedSnapshot.val(), previousChildKey)
+            populated[snapshot.key] = {
               ref: ref,
               listener: ref.on('value', (populatedSnapshot) => {
-                dispatchChildChanged(store, localBinding)(snapshot.key(), populatedSnapshot.val())
+                dispatchChildChanged(store, localBinding)(snapshot.key, populatedSnapshot.val())
               }, cancelCallback)
             }
           }, cancelCallback)
         } else {
-          dispatchChildAdded(store, localBinding)(snapshot.key(), snapshot.val(), previousChildKey)
+          dispatchChildAdded(store, localBinding)(snapshot.key, snapshot.val(), previousChildKey)
         }
       }
     }
@@ -69,7 +71,7 @@ export default function subscribe(localBinding, bindOptions, options) {
           })
           return result
         }).then(populated => {
-          dispatchArrayUpdated(store, localBinding)(snapshot.key(), populated)
+          dispatchArrayUpdated(store, localBinding)(snapshot.key, populated)
           dispatchInitialValueReceived(store, localBinding)
           initialValueReceived = true
 
@@ -84,19 +86,19 @@ export default function subscribe(localBinding, bindOptions, options) {
           })
         })
       } else {
-        dispatchArrayUpdated(store, localBinding)(snapshot.key(), snapshot.val())
+        dispatchArrayUpdated(store, localBinding)(snapshot.key, snapshot.val())
         dispatchInitialValueReceived(store, localBinding)
         initialValueReceived = true
       }
     }
 
     const onChildChanged = (snapshot) => {
-      dispatchChildChanged(store, localBinding)(snapshot.key(), snapshot.val())
+      dispatchChildChanged(store, localBinding)(snapshot.key, snapshot.val())
     }
 
     const onChildRemoved = (snapshot) => {
       dispatchChildRemoved(store, localBinding)(snapshot)
-      const key = snapshot.key()
+      const key = snapshot.key
       if (populated[key]) {
         populated[key].ref.off('value', populated[key].listener)
         delete populated[key]
@@ -125,7 +127,7 @@ export default function subscribe(localBinding, bindOptions, options) {
   }
 
   return {
-    ref: query.ref(),
+    ref: query.ref,
     listeners: listeners,
     populated: populated
   }

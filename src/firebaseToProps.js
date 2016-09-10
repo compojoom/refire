@@ -1,7 +1,7 @@
 const firebaseStateToProps = (state, localBindings) => {
   return (localBindings || []).reduce((stateSlice, binding) => {
     if (binding === "_status") {
-      const { initialValuesReceived, stores, url, ...slice} = state.firebase
+      const { initialValuesReceived, stores, ...slice} = state.firebase
       stateSlice[binding] = slice
     } else {
       stateSlice[binding] = state.firebase.stores[binding]

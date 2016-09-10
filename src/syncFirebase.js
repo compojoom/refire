@@ -1,4 +1,4 @@
-import Firebase from 'firebase'
+import firebase from 'firebase'
 import isEqual from 'lodash/lang/isEqual'
 import difference from 'lodash/array/difference'
 import intersection from 'lodash/array/intersection'
@@ -22,8 +22,12 @@ import unsubscribeAll from './syncFirebase/unsubscribeAll'
 export default function syncFirebase(options = {}) {
 
   const {
+    apiKey,
     store,
-    url,
+    projectId,
+    databaseURL,
+    serviceAccount,
+    name = '[DEFAULT]',
     bindings: initialBindings = {},
     onCancel = () => {},
     onAuth,
@@ -34,13 +38,33 @@ export default function syncFirebase(options = {}) {
     throw new Error("syncFirebase: Redux store reference not found in options")
   }
 
-  if (typeof url === "undefined") {
-    throw new Error("syncFirebase: Firebase url not found in options")
+  if (typeof projectId === "undefined") {
+    throw new Error("syncFirebase: projectId not found in options")
   }
 
-  store.dispatch(updateConfig({url: url}))
+  if (typeof apiKey === "undefined") {
+    throw new Error("syncFirebase: apiKey not found in options")
+  }
 
-  const rootRef = new Firebase(url)
+  if (typeof url !== "undefined") {
+    throw new Error("syncFirebase: url is deprecated in options, use projectId & apiKey instead")
+  }
+
+  const config = {
+    apiKey: apiKey,
+    authDomain: `${projectId}.firebaseapp.com`,
+    databaseURL: databaseURL ? databaseURL : `https://${projectId}.firebaseio.com`,
+    storageBucket: `${projectId}.appspot.com`,
+  }
+
+  if (serviceAccount) {
+    config.serviceAccount = serviceAccount
+  }
+
+  store.dispatch(updateConfig({name: name}))
+
+  const app = firebase.initializeApp(config, name)
+  const rootRef = firebase.database(app).ref()
   const firebaseRefs = {}
   const firebaseListeners = {}
   const firebasePopulated = {}
@@ -48,8 +72,9 @@ export default function syncFirebase(options = {}) {
   let currentOptions = createOptions({
     bindings: initialBindings,
     state: store.getState(),
-    url,
-    pathParams
+    projectId,
+    pathParams,
+    appName: name
   })
 
   store.subscribe(() => {
@@ -57,8 +82,9 @@ export default function syncFirebase(options = {}) {
     const nextOptions = createOptions({
       bindings: initialBindings,
       state: store.getState(),
-      url,
-      pathParams
+      projectId,
+      pathParams,
+      appName: name
     })
 
     if ( !isEqual(currentOptions, nextOptions) ) {
@@ -94,7 +120,8 @@ export default function syncFirebase(options = {}) {
           currentOptions[localBinding],
           {
             store: store,
-            onCancel: onCancel
+            onCancel: onCancel,
+            name: name
           }
         )
         firebaseRefs[localBinding] = ref
@@ -124,7 +151,8 @@ export default function syncFirebase(options = {}) {
             currentOptions[localBinding],
             {
               store: store,
-              onCancel: onCancel
+              onCancel: onCancel,
+              name: name
             }
           )
           firebaseRefs[localBinding] = ref
@@ -136,23 +164,30 @@ export default function syncFirebase(options = {}) {
     }
   })
 
-  rootRef.child('.info/connected')
+  firebase.database(app).ref('.info/connected')
   .on('value', snapshot => {
     if (snapshot.val() === true) {
       store.dispatch(connect())
     }
   }, revokePermissions)
 
-  rootRef.onAuth(function(authData) {
-    if (authData) {
-      store.dispatch(authenticateUser(authData))
-    } else {
-      store.dispatch(unauthenticateUser())
-    }
-    if (onAuth && typeof onAuth === "function") {
-      onAuth(authData, rootRef)
-    }
-  })
+
+  // we need to check for existence of auth as node version doesn't include it
+  if (firebase.auth(app) && typeof firebase.auth(app).onAuthStateChanged === "function") {
+    firebase.auth(app).onAuthStateChanged(function(authData) {
+      // TODO: decide proper user data format
+      // current format is like this for backwards compatibility with 1.x
+      const user = authData ? { ...authData.providerData[0], uid: authData.uid } : null
+      if (user) {
+        store.dispatch(authenticateUser(user))
+      } else {
+        store.dispatch(unauthenticateUser())
+      }
+      if (onAuth && typeof onAuth === "function") {
+        onAuth(user, rootRef)
+      }
+    })
+  }
 
   // initial subscriptions
   Object.keys(currentOptions).forEach(localBinding => {
@@ -161,12 +196,24 @@ export default function syncFirebase(options = {}) {
       currentOptions[localBinding],
       {
         store: store,
-        onCancel: onCancel
+        onCancel: onCancel,
+        name: name
       }
     )
     firebaseRefs[localBinding] = ref
     firebaseListeners[localBinding] = listeners
     firebasePopulated[localBinding] = populated
+  })
+
+
+  const initialized = new Promise((resolve) => {
+    const unsubscribe = store.subscribe(() => {
+      const {firebase} = store.getState()
+      if (firebase.connected && firebase.initialFetchDone) {
+        resolve()
+        unsubscribe()
+      }
+    })
   })
 
   // immediately mark initial fetch completed if we aren't initially subscribed to any stores
@@ -177,16 +224,6 @@ export default function syncFirebase(options = {}) {
   // mark initial values received for stores that don't have initial value
   difference(Object.keys(initialBindings), Object.keys(currentOptions)).forEach(localBinding => {
     store.dispatch(receiveInitialValue(localBinding))
-  })
-
-  const initialized = new Promise((resolve) => {
-    const unsubscribe = store.subscribe(() => {
-      const {firebase} = store.getState()
-      if (firebase.connected && firebase.initialFetchDone) {
-        resolve()
-        unsubscribe()
-      }
-    })
   })
 
   return Object.defineProperties({

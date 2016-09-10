@@ -12,15 +12,23 @@ All mutation happens through [Firebase client's](https://www.firebase.com/docs/w
 
 There's also [refire-app](https://github.com/hoppula/refire-app), it wraps Refire, Redux, React Router and React Free Style with developer friendly API.
 
-## syncFirebase({store, url, bindings, onCancel, onAuth, pathParams})
+## syncFirebase({apiKey, projectId, store, bindings, onCancel, onAuth, pathParams, databaseURL, serviceAccount, name})
 
-syncFirebase needs bindings, a Redux store instance and a Firebase instance url.
+syncFirebase needs bindings, a Redux store instance and a Firebase instance settings (apiKey & projectId).
+
+`apiKey` is needed for firebase client since 3.x, you can obtain it from [Firebase console](https://console.firebase.google.com), select your project and go to `Add Firebase to your web app`.
+
+`projectId` is the project's identifier, e.g. `projectId`.firebaseio.com
 
 `bindings` bindings define the sync options per firebase path. See the comments below in **Usage example** for more info.
 
 `store` is your Redux store instance, remember to include `firebaseReducer` in your Redux reducer function, see the **Usage example** below.
 
-`url` is your firebase instance's url (don't forget the trailing slash).
+`databaseURL` (optional) you can override default `projectId.firebaseio.com` url by setting `databaseURL`, pass the whole url.
+
+`serviceAccount` (optional) is only for server-side usage, see [Add Firebase to your Server](https://firebase.google.com/docs/server/setup) for instructions.
+
+`name` (optional) unique identifier for this instance, defaults to `[DEFAULT]`.
 
 `onAuth` (optional) gets called after Firebase's authentication state changes.
 
@@ -93,7 +101,8 @@ const store = compose(applyMiddleware(thunk))(createStore)(reducer)
 
 const {unsubscribe} = syncFirebase({
   store: store,
-  url: "https://your-firebase-instance.firebaseio.com/",
+  apiKey: "BIzaXyD_O6g9v12ozW38XRJ3DYhI-Q3sEDdqYmw",
+  projectId: "your-firebase-instance",
   bindings: firebaseBindings,
   onAuth: (authData) => {},
   onCancel: (error) => {}
@@ -111,20 +120,17 @@ Creates selector function for [react-redux's connect](https://github.com/reactjs
 If you also need to return something else from Redux, pass your normal mapStateToProps as second parameter, firebaseToProps will merge the results.
 
 ```js
-@connect(
-  firebaseToProps(["counter"])
-)
 class Counter extends Component {
   render() {
     // counter data available as this.props.counter
   }
 }
+export default connect(firebaseToProps(["counter"]))(Counter)
 ```
 
 There's also special `_status` binding available, it provides an object with latest `authenticatedUser`, `connected`, `errors` and `initialFetchDone` values.
 
 ```js
-@connect(firebaseToProps(["_status"]))
 class App extends Component {
 
   render() {
@@ -140,6 +146,7 @@ class App extends Component {
     }
   }
 }
+export default connect(firebaseToProps(["_status"]))(App)
 ```
 
 ## React components

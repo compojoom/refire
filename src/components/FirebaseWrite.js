@@ -51,7 +51,7 @@ export default function(options = {}) {
 
       submit(value) {
         const { dispatch, processing, errors, ...ownProps } = this.props
-        return this.props.dispatch(
+        return dispatch(
           write({ method, path, value, ownProps })
         )
       }

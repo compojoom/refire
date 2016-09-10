@@ -6,22 +6,57 @@ import originalWebsocket from 'faye-websocket'
 import firebaseReducer from '../src/reducers/firebase'
 import createReducer from '../src/helpers/createReducer'
 
-const Firebase = proxyquire('firebase', {
+let sequentialConnectionId = 0
+const PORT = 45000
+
+export const firebase = proxyquire('firebase', {
   'faye-websocket': {
     Client: function (url) {
-      url = url.replace(/dummy\d+\.firebaseio\.test/i, 'localhost').replace('wss://', 'ws://')
+      url = url.replace(/dummy\d+\.firebaseio\.test/i, 'localhost')
       return new originalWebsocket.Client(url)
-    }
+    },
+    '@global': true
   }
 })
 
+firebase.INTERNAL.factories.auth = function(app, extendApp) {
+	const _listeners = []
+	const token = null
+	extendApp({
+		'INTERNAL': {
+			'getToken': function() {
+				if (!token) {
+					return Promise.resolve(null)
+				}
+				_listeners.forEach(function(listener) {
+					listener(token)
+				})
+				return Promise.resolve({ accessToken: token, expirationTime: 1566618502074 })
+			},
+			'addAuthTokenListener': function(listener) {
+				_listeners.push(listener)
+			}
+		}
+	})
+}
+
 const createOptions = proxyquire('../src/syncFirebase/createOptions', {
-  'firebase': Firebase
+  'firebase': firebase
 })
 
-const syncFirebase = proxyquire('../src/syncFirebase', {
-  'firebase': Firebase,
-  './syncFirebase/createOptions': createOptions
+const subscribe = proxyquire('../src/syncFirebase/subscribe', {
+  'firebase': firebase
+})
+
+const actions = proxyquire('../src/actions/firebase', {
+  'firebase': firebase
+})
+
+export const syncFirebase = proxyquire('../src/syncFirebase', {
+  'firebase': firebase,
+  './syncFirebase/createOptions': createOptions,
+  './syncFirebase/subscribe': subscribe,
+  './actions/firebase': actions
 })
 
 const INCREMENT_COUNTER = "INCREMENT_COUNTER"
@@ -43,20 +78,53 @@ export function initStore(bindings, extraReducers = {}) {
 
 export function initCounterReducer() {
   return createReducer(1, {
-    [INCREMENT_COUNTER]: (state, action) => state + 1
+    [INCREMENT_COUNTER]: (state) => state + 1
   })
 }
 
-export const incrementCounter = id => ({ type: INCREMENT_COUNTER })
+export const incrementCounter = () => ({ type: INCREMENT_COUNTER })
+
+function newProjectId() {
+  return `dummy${sequentialConnectionId++}`
+}
+
+function generateServerConfig(projectId) {
+  return {
+    databaseURL: `ws://${projectId}.firebaseio.test:${PORT}`,
+    serviceAccount: {
+      'private_key': 'fake',
+      'client_email': 'fake'
+    },
+    name: `test-firebase-client-${projectId}`
+  }
+}
+
+export function syncOptions(options = {}) {
+  const {bindings, data} = options
+  const server = initServer(data, PORT)
+  const store = initStore(bindings, {counter: initCounterReducer()})
+  const projectId = newProjectId()
+  const {name, ...config} = generateServerConfig(projectId)
+  return {
+    bindings,
+    server,
+    store,
+    projectId,
+    name,
+    config
+  }
+}
 
 export function initSync(options = {}) {
-  const {bindings, data, port, url} = options
-  const server = initServer(data, port)
-  const store = initStore(bindings, {counter: initCounterReducer()})
+  const {bindings, server, store, projectId, name, config} = syncOptions(options)
   const {initialized, unsubscribe} = syncFirebase({
-    store: store,
-    bindings: bindings,
-    url: url
+    store,
+    bindings,
+    apiKey: "test",
+    projectId,
+    name,
+    ...config
   })
-  return {initialized, server, store, unsubscribe}
+
+  return {initialized, server, store, unsubscribe, name}
 }

@@ -119,8 +119,8 @@ function userUnauthenticated(state) {
 }
 
 function configUpdated(state, action) {
-  const {payload: {url}} = action
-  return u({ url: url }, state)
+  const {payload: {name}} = action
+  return u({ name: name }, state)
 }
 
 function updateError(state, action) {
@@ -170,7 +170,7 @@ export default function(bindings) {
     initialFetchDone: false,
     initialValuesReceived: [],
     stores: initialStores,
-    url: null,
+    name: null,
     errors: {
       permissions: null,
       login: null,
