@@ -193,6 +193,7 @@ describe('syncFirebase', () => {
         }
       ]
     })
+    sync.unsubscribe()
     done()
   })
 
@@ -236,6 +237,7 @@ describe('syncFirebase', () => {
       expect(store.getState().firebase.stores.posts.value[0].value).toEqual({title: "First"})
       expect(store.getState().firebase.stores.posts.value[1].value).toEqual({title: "Second"})
       expect(store.getState().firebase.stores.posts.value[2].value).toEqual({title: "Third"})
+      sync.unsubscribe()
     })
 
     it('array item changed', async () => {
@@ -273,6 +275,7 @@ describe('syncFirebase', () => {
         title: "Updated title"
       })
       expect(store.getState().firebase.stores.posts.value[0].value).toEqual({title: "Updated title"})
+      sync.unsubscribe()
     })
 
     it('array item removed', async () => {
@@ -310,6 +313,7 @@ describe('syncFirebase', () => {
       expect(store.getState().firebase.stores.posts.value).toEqual([
         { key: "1", value: { title: "Second" } }
       ])
+      sync.unsubscribe()
     })
 
     it('object changed', async () => {
@@ -344,6 +348,7 @@ describe('syncFirebase', () => {
         email: "test_user@test.dev"
       })
       expect(store.getState().firebase.stores.user.value.email).toEqual("test_user@test.dev")
+      sync.unsubscribe()
     })
 
     it('primitive changed', async () => {
@@ -377,6 +382,7 @@ describe('syncFirebase', () => {
         counter: 2
       })
       expect(store.getState().firebase.stores.counter.value).toEqual(2)
+      sync.unsubscribe()
     })
 
   })
@@ -429,6 +435,7 @@ describe('syncFirebase', () => {
       expect(Object.keys(sync.refs).length).toEqual(0)
       expect(Object.keys(sync.listeners).length).toEqual(0)
       expect(store.getState().firebase.stores.user).toEqual(null)
+      sync.unsubscribe()
     })
 
     it('subscribe binding if path changes from null to string', async (done) => {
@@ -480,6 +487,7 @@ describe('syncFirebase', () => {
             }
           })
           unsubscribe()
+          sync.unsubscribe()
           done()
         }
       })
@@ -542,6 +550,7 @@ describe('syncFirebase', () => {
         expect(userRef).toNotEqual(sync.refs.user)
         expect(userListener).toNotBe(sync.listeners.user)
         unsubscribe()
+        sync.unsubscribe()
         done()
       })
     })
@@ -593,6 +602,7 @@ describe('syncFirebase', () => {
         expect(store.getState().firebase.stores.users.value.length).toEqual(2)
         expect(usersListener).toNotBe(sync.listeners.users)
         unsubscribe()
+        sync.unsubscribe()
         done()
       })
     })
@@ -661,12 +671,12 @@ describe('syncFirebase', () => {
         })
       }).then(() => {
         new Promise((resolve) => {
-          store.dispatch(incrementCounter())
           const unsubscribe = store.subscribe(() => {
             expect(store.getState().firebase.stores.userReviews).toEqual(null)
             unsubscribe()
             resolve()
           })
+          store.dispatch(incrementCounter())
         }).then(() => {
           store.dispatch(incrementCounter())
           const unsubscribe = store.subscribe(() => {
@@ -674,6 +684,7 @@ describe('syncFirebase', () => {
             expect(userReviews.key).toBe("4")
             expect(userReviews.value.map(review => review.key)).toEqual(["b", "c", "e"])
             unsubscribe()
+            sync.unsubscribe()
             done()
           })
         })
