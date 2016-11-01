@@ -164,9 +164,9 @@ export function removeArrayChild(path, snapshot) {
 }
 
 export function updateArray(path, key, value) {
-  const recordsArray = Object.keys(value || []).reduce((arr, recordKey) => {
+  const recordsArray = (value || []).reduce((arr, record) => {
     arr.push(
-      createRecord(recordKey, value[recordKey])
+      createRecord(record[0], record[1])
     )
     return arr
   }, [])

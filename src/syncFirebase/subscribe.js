@@ -63,18 +63,17 @@ export default function subscribe(localBinding, bindOptions, options) {
         Promise.all(
           Object.keys(snapshot.val() || {}).map(populateChild)
         ).then(resolved => {
-          const result = {}
+          const result = []
           resolved.forEach(arr => {
             const [key, ref, value] = arr
-            result[key] = value
+            result.push([key, value])
             populateRefs[key] = ref
           })
           return result
-        }).then(populated => {
-          dispatchArrayUpdated(store, localBinding)(snapshot.key, populated)
+        }).then(populatedResult => {
+          dispatchArrayUpdated(store, localBinding)(snapshot.key, populatedResult)
           dispatchInitialValueReceived(store, localBinding)
           initialValueReceived = true
-
           Object.keys(populateRefs).forEach(key => {
             const ref = populateRefs[key]
             populated[key] = {
@@ -86,7 +85,11 @@ export default function subscribe(localBinding, bindOptions, options) {
           })
         })
       } else {
-        dispatchArrayUpdated(store, localBinding)(snapshot.key, snapshot.val())
+        const orderedValue = []
+        snapshot.forEach(child => {
+          orderedValue.push([child.key, child.val()])
+        })
+        dispatchArrayUpdated(store, localBinding)(snapshot.key, orderedValue)
         dispatchInitialValueReceived(store, localBinding)
         initialValueReceived = true
       }
