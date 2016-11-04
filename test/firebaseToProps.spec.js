@@ -3,6 +3,7 @@ import expect from 'expect'
 import React, { Children, PropTypes, Component } from 'react'
 import TestUtils from 'react-addons-test-utils'
 import { connect } from 'react-redux'
+import get from 'lodash/object/get'
 import { firebaseToProps } from '../src/index'
 import {
   initSync,
@@ -249,7 +250,7 @@ describe('React', () => {
       expect(stub.props.user).toEqual(null)
     })
 
-    it('should map prop value if subscribed', async () => {
+    it('should map prop value if subscribed', async (done) => {
       let initialized, store
       ({initialized, server, unsubscribe, store} = initSync({
         bindings: {
@@ -288,16 +289,19 @@ describe('React', () => {
       store.dispatch(incrementCounter())
 
       const unsub = store.subscribe(() => {
-        stub = TestUtils.findRenderedComponentWithType(tree, Passthrough)
-        expect(stub.props.user).toEqual({
-          key: "user",
-          value: {name: "Test user", email: "test@test.dev"}
-        })
-        unsub()
+        const state = get(store.getState(), 'firebase.stores.user')
+        if (state && state.value !== null) {
+          expect(stub.props.user).toEqual({
+            key: "user",
+            value: {name: "Test user", email: "test@test.dev"}
+          })
+          unsub()
+          done()
+        }
       })
     })
 
-    it('should map correct value if unsubscribed & resubscribed', async () => {
+    it('should map correct value if unsubscribed & resubscribed', async (done) => {
       let initialized, store
       ({initialized, server, unsubscribe, store} = initSync({
         bindings: {
@@ -348,12 +352,15 @@ describe('React', () => {
       store.dispatch(incrementCounter())
 
       const unsub = store.subscribe(() => {
-        stub = TestUtils.findRenderedComponentWithType(tree, Passthrough)
-        expect(stub.props.user).toEqual({
-          key: "2",
-          value: {name: "Second user", email: "second@test.dev"}
-        })
-        unsub()
+        const state = get(store.getState(), 'firebase.stores.user')
+        if (state && state.value !== null) {
+          expect(stub.props.user).toEqual({
+            key: "2",
+            value: {name: "Second user", email: "second@test.dev"}
+          })
+          unsub()
+          done()
+        }
       })
     })
 
