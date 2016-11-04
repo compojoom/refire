@@ -1,5 +1,6 @@
 import findIndex from 'lodash/array/findIndex'
 import without from 'lodash/array/without'
+import isEqual from 'lodash/lang/isEqual'
 import u from 'updeep'
 import createReducer from '../helpers/createReducer'
 import {
@@ -49,8 +50,8 @@ function arrayChildChanged(state, action) {
   }
 
   return u.updateIn(
-    `stores.${path}.value.${indexForKey(currentValue.value, key)}`,
-    value,
+    `stores.${path}.value.${indexForKey(currentValue.value, key)}.value`,
+    prev => isEqual(prev, value.value) ? prev : value.value,
     state
   )
 }
