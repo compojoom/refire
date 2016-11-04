@@ -1,6 +1,6 @@
 {
   "name": "refire",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "Declarative Firebase bindings for Redux and React",
   "keywords": ["react", "redux", "firebase"],
   "main": "./lib/index.js",
