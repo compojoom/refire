@@ -1,7 +1,7 @@
 import firebase from 'firebase'
-import isEqual from 'lodash/lang/isEqual'
-import difference from 'lodash/array/difference'
-import intersection from 'lodash/array/intersection'
+import isEqual from 'lodash/isEqual'
+import difference from 'lodash/difference'
+import intersection from 'lodash/intersection'
 
 import {
   replaceValue,

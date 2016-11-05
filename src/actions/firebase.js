@@ -1,5 +1,5 @@
 import firebase from 'firebase'
-import uniq from 'lodash/array/uniq'
+import uniq from 'lodash/uniq'
 
 export const ARRAY_CHILD_ADDED = "ARRAY_CHILD_ADDED"
 export const ARRAY_CHILD_CHANGED = "ARRAY_CHILD_CHANGED"

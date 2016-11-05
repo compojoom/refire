@@ -3,7 +3,7 @@ import expect from 'expect'
 import React, { Children, PropTypes, Component } from 'react'
 import TestUtils from 'react-addons-test-utils'
 import { connect } from 'react-redux'
-import get from 'lodash/object/get'
+import get from 'lodash/get'
 import { firebaseToProps } from '../src/index'
 import {
   initSync,

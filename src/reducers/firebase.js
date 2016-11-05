@@ -1,6 +1,6 @@
-import findIndex from 'lodash/array/findIndex'
-import without from 'lodash/array/without'
-import isEqual from 'lodash/lang/isEqual'
+import findIndex from 'lodash/findIndex'
+import without from 'lodash/without'
+import isEqual from 'lodash/isEqual'
 import u from 'updeep'
 import createReducer from '../helpers/createReducer'
 import {
