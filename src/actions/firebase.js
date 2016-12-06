@@ -285,7 +285,7 @@ export function oAuthLogin(flowCode, providerCode, scopes = []) {
       }).catch(error => {
         dispatch(updateError("login", error.message))
         dispatch(updateProcessing("login", false))
-        return reject()
+        return reject(error)
       })
     })
   }

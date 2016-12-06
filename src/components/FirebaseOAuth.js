@@ -10,7 +10,9 @@ class FirebaseOAuth extends Component {
   static propTypes = {
     provider: PropTypes.oneOf(validProviders),
     flow: PropTypes.oneOf(validFlows),
-    scopes: PropTypes.array
+    scopes: PropTypes.array,
+    onError: PropTypes.func,
+    onClick: PropTypes.func
   }
 
   constructor(props) {
@@ -22,7 +24,14 @@ class FirebaseOAuth extends Component {
     const flow = this.props.flow || "popup"
     this.props.dispatch(
       oAuthLogin(flow, this.props.provider, this.props.scopes)
-    ).catch(() => {})
+    ).catch((error) => {
+      if (typeof this.props.onError === "function") {
+        this.props.onError(error)
+      }
+    })
+    if (typeof this.props.onClick === "function") {
+      this.props.onClick()
+    }
   }
 
   render() {

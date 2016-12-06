@@ -8,6 +8,8 @@ Available authentication flows are `popup` and `redirect`.
 
 You can also pass `scopes` prop to request extra information, e.g. obtaining birthday with Facebook authentication you'd pass `['user_birthday']` as prop.
 
+You can also pass `onClick` and `onError` callback functions as props.
+
 ```js
 import { FirebaseOAuth } from 'refire-app'
 const LoginWithGoogle = () => {
