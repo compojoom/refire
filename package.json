@@ -43,7 +43,7 @@
     "rimraf": "^2.5.4"
   },
   "dependencies": {
-    "firebase": "3.2.1",
+    "react-native-firebase": "^2.0.4",
     "lodash": "^4.16.6",
     "redux-thunk": "^2.1.0",
     "updeep": "^1.0.0"

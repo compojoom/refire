@@ -1,4 +1,6 @@
-import firebase from 'firebase'
+// import firebase from 'firebase'
+import RNFirebase from 'react-native-firebase';
+let firebase = RNFirebase;
 import uniq from 'lodash/uniq'
 
 export const ARRAY_CHILD_ADDED = "ARRAY_CHILD_ADDED"

@@ -3,3 +3,9 @@ node_modules
 TODO
 lib
 npm-debug.log
+/.idea/workspace.xml
+/.idea/vcs.xml
+/.idea/refire.iml
+/.idea/modules.xml
+/.idea/misc.xml
+/.idea/inspectionProfiles/Project_Default.xml

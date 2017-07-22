@@ -1,5 +1,6 @@
-import firebase from 'firebase'
-
+// import firebase from 'firebase'
+import RNFirebase from 'react-native-firebase';
+let firebase = RNFirebase;
 import {
   dispatchChildAdded,
   dispatchChildChanged,

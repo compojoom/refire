@@ -1,4 +1,6 @@
-import firebase from 'firebase'
+// import firebase from 'firebase'
+import RNFirebase from 'react-native-firebase';
+let firebase = RNFirebase;
 import isEqual from 'lodash/isEqual'
 import difference from 'lodash/difference'
 import intersection from 'lodash/intersection'

@@ -1,5 +1,9 @@
-import firebase from 'firebase'
+// import firebase from 'firebase'
+import RNFirebase from 'react-native-firebase';
+let firebase = RNFirebase;
 import buildQueryState from './buildQueryState'
+
+
 
 export default function createOptions({bindings, pathParams, state, appName}) {
   return Object.keys(bindings).reduce((result, localBinding) => {
